@@ -1,0 +1,20 @@
+ABOUT
+
+    MHDD Organizer aims to be an application which helps users manage
+    their multimedia harddrives by parsing the entire directory tree
+    and building a virtual database of all the movies in the disk,
+    along with their IMDB or custom infos.
+
+    It will also have the ability to save a teaser image with each
+    movie containing important data like year, producer, main actors
+    and such, so that you can check movie info right from your MHDD.
+
+
+USING
+    
+    MHDD Organizer is programmed in Python, therefore no building is
+    needed.
+
+    It does, however, require the following dependencies to run:
+      - Python 2.6
+      - wxPython
