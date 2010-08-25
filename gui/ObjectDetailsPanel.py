@@ -1,13 +1,13 @@
 #! /usr/bin/env python
 
 """
-File: main.py
+File: ObjectDetailsPanel.py
 Author: Revolt
-Date: 23-08-2010
+Date: 15-08-2010
 --------------------------
 Desc:
-    This file initializes the wx application and starts the main
-    application loop.
+    This file contains the definition and implementation of the panel 
+    containing details about a multimedia object
 --------------------------
 Copyright (C) 2010 Revolt 
 
@@ -25,19 +25,16 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import wx
-from gui.MainFrame import *
 
-class MainApp(wx.App):
-    """ Our main application class """
+import wx, os
 
-    def OnInit(self):
-        """ What to do on application load """
+class ObjectDetailsPanel(wx.Panel):
+    """ The object details panel class """
 
-        self.frame = MainFrame(None, "MHDD Organizer")
-        self.frame.Show(True)
-        self.SetTopWindow(self.frame)
-        return True;
+    def __init__(self, parent):
+        """ Constructor """
 
-app = MainApp(False)
-app.MainLoop()
+        # -- Frame Initialization --
+        wx.Panel.__init__(self, parent)
+
+        # -- Control Initialization --

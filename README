@@ -18,3 +18,7 @@ USING
     It does, however, require the following dependencies to run:
       - Python 2.6
       - wxPython
+
+    To launch the application run:
+    $ python main.py
+    In the application's root directory
