@@ -38,27 +38,34 @@ class MainFrame(wx.Frame):
         """ Constructor """
 
         # -- Frame Initialization --
-        wx.Frame.__init__(self, parent, title=title, size=(600,400))
+        wx.Frame.__init__(self, parent, title=title, size=(700,500))
 
         # -- Control Initialization --
         self.sptMain = wx.SplitterWindow(self)
 
         self.pnlObjList = wx.Panel(self.sptMain)
-        self.pnlObjDetails = ObjectDetailsPanel(self.sptMain)
+        self.pnlObjDetailsBase = wx.Panel(self.sptMain)
         
-        self.sptMain.SplitVertically(self.pnlObjList, self.pnlObjDetails, 150)
+        self.sptMain.SplitVertically(self.pnlObjList, self.pnlObjDetailsBase, 150)
         self.sptMain.SetSashPosition(150)
 
         self.lstObj = wx.ListView(self.pnlObjList, style = wx.LC_REPORT | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL | wx.LC_SORT_ASCENDING)
         self.szrBaseObjList = wx.BoxSizer(wx.VERTICAL)
         self.szrBaseObjList.Add(self.lstObj, 1, wx.ALL | wx.EXPAND, 5)
 
-        self.scrObjDetails = wx.ScrolledWindow(self.pnlObjDetails)
+        self.scrObjDetails = wx.ScrolledWindow(self.pnlObjDetailsBase)
         self.szrBaseObjDetails = wx.BoxSizer(wx.VERTICAL)
         self.szrBaseObjDetails.Add(self.scrObjDetails, 1, wx.ALL | wx.EXPAND, 5)
+        
+        self.pnlObjDetails = ObjectDetailsPanel(self.scrObjDetails)
+        self.szrObjDetails = wx.BoxSizer(wx.VERTICAL)
+        self.szrObjDetails.Add(self.pnlObjDetails, 1, wx.ALL | wx.EXPAND, 5)
+
+        self.scrObjDetails.SetSizer(self.szrObjDetails)
+        self.scrObjDetails.SetScrollRate(5, 5)
 
         self.pnlObjList.SetSizer(self.szrBaseObjList)
-        self.pnlObjDetails.SetSizer(self.szrBaseObjDetails)
+        self.pnlObjDetailsBase.SetSizer(self.szrBaseObjDetails)
 
         self.Layout()
 

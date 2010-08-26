@@ -34,6 +34,9 @@ class MainApp(wx.App):
     def OnInit(self):
         """ What to do on application load """
 
+        wx.Image.AddHandler(wx.PNGHandler())
+        wx.Image.AddHandler(wx.JPEGHandler())
+
         self.frame = MainFrame(None, "MHDD Organizer")
         self.frame.Show(True)
         self.SetTopWindow(self.frame)
