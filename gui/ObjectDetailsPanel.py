@@ -76,7 +76,7 @@ class ObjectDetailsPanel(wx.Panel):
         self.txtDirector = wx.TextCtrl(self, size=(250, -1))
 
         self.lblActors = wx.StaticText(self, label="Actors:")
-        self.lstActors = wx.ListView(self, style=wx.LC_REPORT | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL | wx.LC_SORT_ASCENDING)
+        self.lstActors = wx.ListView(self, style=wx.LC_REPORT | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL | wx.LC_SORT_ASCENDING | wx.SIMPLE_BORDER)
 
         self.szrGrid.Add(self.lblTitle, (0, 0), (1, 3), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3)
         self.szrGrid.Add(self.pnlImgCover, (0, 3), (5, 1), wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)

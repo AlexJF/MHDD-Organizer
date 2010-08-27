@@ -28,11 +28,14 @@ Copyright (C) 2010 Revolt
 
 import wx, os
 from ObjectDetailsPanel import *
+from HDDSelector.HDDSelectorDialog import *
 
 # --------------------- Main frame Class -----------------------
 
 class MainFrame(wx.Frame):
     """ The main frame of the application """
+
+    currentHDD = None
 
     def __init__(self, parent, title):
         """ Constructor """
@@ -49,7 +52,7 @@ class MainFrame(wx.Frame):
         self.sptMain.SplitVertically(self.pnlObjList, self.pnlObjDetailsBase, 150)
         self.sptMain.SetSashPosition(150)
 
-        self.lstObj = wx.ListView(self.pnlObjList, style = wx.LC_REPORT | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL | wx.LC_SORT_ASCENDING)
+        self.lstObj = wx.ListView(self.pnlObjList, style = wx.LC_REPORT | wx.LC_NO_HEADER | wx.LC_SINGLE_SEL | wx.LC_SORT_ASCENDING | wx.SIMPLE_BORDER)
         self.szrBaseObjList = wx.BoxSizer(wx.VERTICAL)
         self.szrBaseObjList.Add(self.lstObj, 1, wx.ALL | wx.EXPAND, 5)
 
@@ -70,7 +73,15 @@ class MainFrame(wx.Frame):
         self.Layout()
 
         # -- Event Binding -- 
-        #self.frm.Bind(wx.EVT_TOOL, self.OnVidAdd, id=xrc.XRCID('tlbItemVidAdd'))
+        self.Bind(wx.EVT_SHOW, self.OnShow)
 
-        #self.btnUndo.Bind(wx.EVT_BUTTON, self.OnUndo)
+    def OnShow(self, event):
+        """ This method is called when the application is shown or hidden """
+
+        if event.GetShow() == True and self.currentHDD == None:
+            hddSelectDialog = HDDSelectorDialog(self)
+
+            if hddSelectDialog.ShowModal() == wx.ID_OK:
+                self.currentHDD = hddSelectDialog.GetSelectedHDD()
+
 
