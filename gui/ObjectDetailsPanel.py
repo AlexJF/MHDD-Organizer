@@ -3,7 +3,6 @@
 """
 File: ObjectDetailsPanel.py
 Author: Revolt
-Date: 15-08-2010
 --------------------------
 Desc:
     This file contains the definition and implementation of the panel 

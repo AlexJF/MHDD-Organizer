@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 
 """
-File: main.py
+File: Category.py
 Author: Revolt
+Date: 28-08-2010
 --------------------------
 Desc:
-    This file initializes the wx application and starts the main
-    application loop.
+    This file contains the definition of the Category class
 --------------------------
 Copyright (C) 2010 Revolt 
 
@@ -24,27 +24,14 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import wx
-from gui.MainFrame import *
+class Category:
+    """ The Category class """
 
-class MainApp(wx.App):
-    """ Our main application class """
+    name = None
+    type = None
+    path = None
 
-    def OnInit(self):
-        """ What to do on application load """
-
-        self.SetAppName("MHDD Organizer")
-
-        wx.Image.AddHandler(wx.PNGHandler())
-        wx.Image.AddHandler(wx.JPEGHandler())
-
-        self.config = wx.FileConfig(style=wx.CONFIG_USE_LOCAL_FILE)
-        wx.Config.Set(self.config)
-
-        self.frame = MainFrame(None, "MHDD Organizer")
-        self.frame.Show(True)
-        self.SetTopWindow(self.frame)
-        return True;
-
-app = MainApp(False)
-app.MainLoop()
+    def __init__(self, name, type, path):
+        self.name = name
+        self.type = type
+        self.path = path

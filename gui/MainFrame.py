@@ -3,7 +3,6 @@
 """
 File: MainFrame.py
 Author: Revolt
-Date: 15-08-2010
 --------------------------
 Desc:
     This file contains the definition and implementation of the main
@@ -28,7 +27,7 @@ Copyright (C) 2010 Revolt
 
 import wx, os
 from ObjectDetailsPanel import *
-from HDDSelector.HDDSelectorDialog import *
+from HddSelector.HddSelectorDialog import *
 
 # --------------------- Main frame Class -----------------------
 
@@ -79,9 +78,9 @@ class MainFrame(wx.Frame):
         """ This method is called when the application is shown or hidden """
 
         if event.GetShow() == True and self.currentHDD == None:
-            hddSelectDialog = HDDSelectorDialog(self)
+            hddSelectDialog = HddSelectorDialog(self)
 
             if hddSelectDialog.ShowModal() == wx.ID_OK:
-                self.currentHDD = hddSelectDialog.GetSelectedHDD()
+                self.currentHDD = hddSelectDialog.GetSelectedHdd()
 
 
