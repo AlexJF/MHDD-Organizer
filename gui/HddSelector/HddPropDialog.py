@@ -27,6 +27,7 @@ Copyright (C) 2010 Revolt
 
 
 import wx, os, ConfigParser
+from CatPropDialog import *
 from classes.Category import *
 from classes.HardDrive import *
 
@@ -42,9 +43,9 @@ class HddPropDialog(wx.Dialog):
         """
 
         # -- Private Variables Initialization --
-        self.originalHardDrive = hardDrive
-        self.hardDriveDirty = True
-        self.categoryList = []
+        self._originalHardDrive = hardDrive
+        self._hardDriveDirty = True
+        self._categoryList = []
         label = ""
         path = ""
 
@@ -52,8 +53,8 @@ class HddPropDialog(wx.Dialog):
             label = hardDrive.GetLabel()
             path = hardDrive.GetPath()
             hardDrive.LoadCategoryList()
-            self.categoryList = list(hardDrive.GetCategoryList())
-            self.hardDriveDirty = False
+            self._categoryList = list(hardDrive.GetCategoryList())
+            self._hardDriveDirty = False
 
         # -- Panel Initialization --
         wx.Dialog.__init__(self, parent, wx.ID_ANY, "HDD Editor")
@@ -123,27 +124,56 @@ class HddPropDialog(wx.Dialog):
         self.txtLabel.Bind(wx.EVT_TEXT, self.OnTextLabelChanged)
         self.dirPath.Bind(wx.EVT_DIRPICKER_CHANGED, self.OnDirPathChanged)
 
+        self.lstCat.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnListItemSelected)
+        self.lstCat.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnListItemDeSelected)
+        self.lstCat.Bind(wx.EVT_LIST_DELETE_ITEM, self.OnListItemRemoved)
+
+        self.btnCatAdd.Bind(wx.EVT_BUTTON, self.OnCatAdd)
+        self.btnCatRem.Bind(wx.EVT_BUTTON, self.OnCatRem)
+        self.btnCatEdit.Bind(wx.EVT_BUTTON, self.OnCatEdit)
+
         self.PopulateList()
 
     def PopulateList(self):
         """ Given a list of categories, populates the listview """
 
-        for category in self.categoryList:
-            AddCategory(category.name, category.type, category.path)
+        for category in self._categoryList:
+            self.AddCategoryListView(category)
 
-    def AddCategory(self, category):
-        """ Adds a new category to the list """
+    def AddCategoryListView(self, category):
+        """ 
+        Adds a new category to the list 
+        ---
+        Params:
+            @ category - The new category to add
+        """
 
-        index = self.lstCat.InsertItem(self.lstCat.GetItemCount(), category.name)
-        self.lstCat.SetStringItem(index, 1, category.type)
-        self.lstCat.SetStringItem(index, 2, category.path)
-        self.categoryList.append(category)
+        index = self.lstCat.InsertStringItem(self.lstCat.GetItemCount(), category.GetName())
+        self.lstCat.SetStringItem(index, 1, category.GetType())
+        self.lstCat.SetStringItem(index, 2, category.GetRelativePath())
 
-    def RemCategory(self, index):
-        """ Removes a category from the list """
+    def UpdateCategoryListView(self, index, category):
+        """
+        Update an existing category
+        ---
+        Params:
+            @ index - The index of the category to update
+            @ category - New category data
+        """
+
+        self.lstCat.SetStringItem(index, 0, category.GetName())
+        self.lstCat.SetStringItem(index, 1, category.GetType())
+        self.lstCat.SetStringItem(index, 2, category.GetRelativePath())
+
+    def RemCategoryListView(self, index):
+        """ 
+        Removes a category from the list 
+        ---
+        Params:
+            @ index - The index of the category to remove
+        """
 
         self.lstCat.DeleteItem(index)
-        self.categoryList.remove(index)
 
     def GetHdd(self):
         """ 
@@ -153,10 +183,11 @@ class HddPropDialog(wx.Dialog):
         Return: HardDrive object
         """
 
-        if not self.hardDriveDirty:
-            return self.originalHardDrive
+        if not self._hardDriveDirty:
+            return self._originalHardDrive
         else:
-            return HardDrive(None, self.txtLabel.GetValue(), self.dirPath.GetPath(), self.categoryList)
+            print str(self._categoryList)
+            return HardDrive(None, self.txtLabel.GetValue(), self.dirPath.GetPath(), self._categoryList)
 
     # -- Events --
     def OnTextLabelChanged(self, event):
@@ -172,7 +203,7 @@ class HddPropDialog(wx.Dialog):
         else:
             self.btnOk.Enable()
 
-        self.hardDriveDirty = True
+        self._hardDriveDirty = True
 
     def OnDirPathChanged(self, event):
         """
@@ -180,9 +211,72 @@ class HddPropDialog(wx.Dialog):
         flag to True
         """
 
-        self.hardDriveDirty = True
+        self._hardDriveDirty = True
 
+    def OnListItemSelected(self, event):
+        """ Enables the ok, edit and remove buttons """
 
+        self.btnCatEdit.Enable()
+        self.btnCatRem.Enable()
+        self.btnOk.Enable()
 
+    def OnListItemDeSelected(self, event):
+        """ Disables the ok, edit and remove buttons """
+
+        self.btnCatEdit.Disable()
+        self.btnCatRem.Disable()
+        self.btnOk.Disable()
+
+    def OnListItemRemoved(self, event):
+        """ Disables the ok, edit and remove buttons """
+
+        self.btnCatEdit.Disable()
+        self.btnCatRem.Disable()
+        self.btnOk.Disable()
+
+    def OnCatAdd(self, event):
+        """
+        Ask the user for new category details and add it to the list
+        """
+
+        dlgCatProp = CatPropDialog(self, self.dirPath.GetPath())
+
+        if dlgCatProp.ShowModal() == wx.ID_OK:
+            newCategory = dlgCatProp.GetCategory()
+            self._categoryList.append(newCategory)
+            self.AddCategoryListView(newCategory)
+            self._hardDriveDirty = True
+
+    def OnCatRem(self, event):
+        """
+        Remove the selected category from the lists
+        """
+
+        selectedIndex = self.lstCat.GetFirstSelected()
+
+        if selectedIndex == -1:
+            return
+        
+        self.RemCategoryListView(selectedIndex)
+        self._categoryList.Remove(selectedIndex)
+        self._hardDriveDirty = True
+
+    def OnCatEdit(self, event):
+        """
+        Edit the selected category with new user input
+        """
+
+        selectedIndex = self.lstCat.GetFirstSelected()
+
+        if selectedIndex == -1:
+            return
+
+        dlgCatProp = CatPropDialog(self, self.dirPath.GetPath(), self._categoryList[selectedIndex])
+
+        if dlgCatProp.ShowModal() == wx.ID_OK:
+            editedCategory = dlgCatProp.GetCategory()
+            self._categoryList[selectedIndex] = editedCategory
+            self.UpdateCategoryListView(selectedIndex, editedCategory) 
+            self._hardDriveDirty = True
 
 

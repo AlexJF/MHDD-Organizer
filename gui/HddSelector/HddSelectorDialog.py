@@ -38,7 +38,7 @@ class HddSelectorDialog(wx.Dialog):
         """ Constructor """
 
         # -- Private Variables Initialization --
-        self.hddList = HardDriveList()
+        self._hddList = HardDriveList()
 
         # -- Panel Initialization --
         wx.Dialog.__init__(self, parent, wx.ID_ANY, "Please Select a HDD")
@@ -119,7 +119,7 @@ class HddSelectorDialog(wx.Dialog):
             @ index - Index of the harddrive to update
         """
 
-        hdd = self.hddList[index]
+        hdd = self._hddList[index]
 
         self.lstHdd.SetStringItem(index, 0, hdd.GetLabel(), hdd.Connected())
         self.lstHdd.SetStringItem(index, 1, hdd.GetLabel())
@@ -137,7 +137,7 @@ class HddSelectorDialog(wx.Dialog):
     def ReloadHddList(self):
         """ Reloads Hdd info from the config and refreshes the listview """
 
-        self.hddList.LoadFromConfig()
+        self._hddList.LoadFromConfig()
         self.RefreshHddList()
 
 
@@ -145,7 +145,7 @@ class HddSelectorDialog(wx.Dialog):
         """ Refreshes the listview according to the Hdd info in memory """
 
         self.lstHdd.DeleteAllItems()
-        for hardDrive in self.hddList:
+        for hardDrive in self._hddList:
             self.AddHardDriveListView(hardDrive)
 
 
@@ -163,7 +163,7 @@ class HddSelectorDialog(wx.Dialog):
         if indexSelectedItem == -1:
             return -1, None
 
-        return indexSelectedItem, self.hddList[indexSelectedItem]
+        return indexSelectedItem, self._hddList[indexSelectedItem]
 
     #-------- EVENTS ---------
     def OnListItemSelected(self, event):
@@ -194,7 +194,8 @@ class HddSelectorDialog(wx.Dialog):
 
         if dlgHddProp.ShowModal() == wx.ID_OK:
             newHdd = dlgHddProp.GetHdd()
-            self.hddList.Add(newHdd)
+
+            self._hddList.Add(newHdd)
             self.AddHardDriveListView(newHdd)
 
         dlgHddProp.Destroy()
@@ -208,7 +209,7 @@ class HddSelectorDialog(wx.Dialog):
             return
 
         self.RemoveHardDriveListView(selectedIndex)
-        self.hddList.Remove(selectedIndex)
+        self._hddList.Remove(selectedIndex)
         self.RefreshHddList()
 
     def OnHddEdit(self, event):
@@ -224,8 +225,8 @@ class HddSelectorDialog(wx.Dialog):
         if dlgHddProp.ShowModal() == wx.ID_OK:
             editedHdd = dlgHddProp.GetHdd()
             
-            self.hddList.Edit(selectedIndex, editedHdd)
-            self.UpdateListViewInfo(selectedIndex)
+            self._hddList.Edit(selectedIndex, editedHdd)
+            self.UpdateHardDriveListView(selectedIndex)
 
         dlgHddProp.Destroy()
 

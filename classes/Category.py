@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 """
-File: Category.py
+File: Category.pye
 Author: Revolt
 Date: 28-08-2010
 --------------------------
@@ -27,11 +27,69 @@ Copyright (C) 2010 Revolt
 class Category:
     """ The Category class """
 
-    name = None
-    type = None
-    path = None
+    def __init__(self, name, catType, relpath):
+        """
+        Constructor
+        ---
+        Params:
+            @ name (String) - The name of this category
+            @ type (String) - The type of this category
+            @ relpath (String) - The path to the folder that is the root of the
+                        category, in relation to the hdd path
+        """
 
-    def __init__(self, name, type, path):
-        self.name = name
-        self.type = type
-        self.path = path
+        self._name = name
+        self._type = catType
+        self._relpath = relpath
+
+    # -- Get Properties --
+    def GetName(self):
+        """
+        Return (String): The name of this category
+        """
+
+        return self._name
+
+    def GetType(self):
+        """
+        Return (String): The type of this category
+        """
+        return self._type
+
+    def GetRelativePath(self):
+        """
+        Return (String): The path to the folder that is the root
+                         of the category, in relation to the hdd
+        """
+        return self._relpath
+
+    # -- Set Properties --
+    def SetName(self, name):
+        """
+        Changes the name of this category
+        ---
+        Param:
+            @ name (String) - The new name of the category
+        """
+
+        self._name = name
+
+    def SetType(self, catType):
+        """
+        Changes the type of this category
+        ---
+        Param:
+            @ type (String) - The new type of the category
+        """
+
+        self._type = catType
+
+    def SetRelPath(self, relpath):
+        """
+        Changes the path of the category relative to the HDD
+        ---
+        Param:
+            @ relpath (String) - The new relpath of the category
+        """
+
+        self._relpath = relpath
