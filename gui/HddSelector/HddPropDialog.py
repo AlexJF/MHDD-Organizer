@@ -189,7 +189,7 @@ class HddPropDialog(wx.Dialog):
             print str(self._categoryList)
             return HardDrive(None, self.txtLabel.GetValue(), self.dirPath.GetPath(), self._categoryList)
 
-    # -- Events --
+    # -- EVENTS --
     def OnTextLabelChanged(self, event):
         """ 
         Checks if the label text is valid and enables the OK

@@ -95,6 +95,15 @@ class HardDriveList:
         hardDrive.SetCategoryList(newHardDrive.GetCategoryList())
         hardDrive.SaveCategoryList()
 
+        if self.configSync:
+            hddUuid = hardDrive.GetUuid()
+
+            config = wx.Config.Get()
+            config.SetPath("/drives/" + hddUuid)
+
+            config.Write("Label", hardDrive.GetLabel())
+            config.Write("Path", hardDrive.GetPath())
+
     def Remove(self, index):
         """ Removes a harddrive from the list """
 

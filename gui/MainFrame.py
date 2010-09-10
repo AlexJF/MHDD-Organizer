@@ -42,7 +42,20 @@ class MainFrame(wx.Frame):
         # -- Frame Initialization --
         wx.Frame.__init__(self, parent, title=title, size=(700,500))
 
+        # -- Private Variable Declaration --
+        self._currentHdd = None
+        self._currentCat = None
+
         # -- Control Initialization --
+        self.tlbMain = self.CreateToolBar()
+        self.tlbMain.AddTool(wx.ID_ADD, wx.Bitmap("gui/images/add.png", wx.BITMAP_TYPE_PNG), shortHelpString = "Add a new object")
+        self.tlbMain.AddTool(wx.ID_REMOVE, wx.Bitmap("gui/images/rem.png", wx.BITMAP_TYPE_PNG), shortHelpString = "Remove a object")
+
+        self.cmbCat = wx.ComboBox(self.tlbMain)
+        self.tlbMain.AddControl(self.cmbCat)
+
+        self.tlbMain.Realize()
+
         self.sptMain = wx.SplitterWindow(self)
 
         self.pnlObjList = wx.Panel(self.sptMain)
@@ -74,6 +87,29 @@ class MainFrame(wx.Frame):
         # -- Event Binding -- 
         self.Bind(wx.EVT_SHOW, self.OnShow)
 
+
+    def ChangeHDD(self, hdd):
+        """
+        Sets the new HDD to be analysed and refreshes the category combobox
+        ---
+        Params:
+            @ hdd (HardDrive) - The new harddrive to be analysed
+        """
+
+        if not isinstance(hdd, HardDrive):
+            return
+
+        self._currentHdd = hdd
+        self._currentCat = None
+
+        if self._currentHdd != None:
+            self._currentHdd.LoadCategoryList()
+
+        for category in self._currentHdd.GetCategoryList():
+            self.cmbCat.Append(category.GetName(), category)
+
+    # -- EVENTS --
+
     def OnShow(self, event):
         """ This method is called when the application is shown or hidden """
 
@@ -81,6 +117,6 @@ class MainFrame(wx.Frame):
             hddSelectDialog = HddSelectorDialog(self)
 
             if hddSelectDialog.ShowModal() == wx.ID_OK:
-                self.currentHDD = hddSelectDialog.GetSelectedHdd()
+                self.ChangeHDD(hddSelectDialog.GetSelectedHdd()[1])
 
 

@@ -24,10 +24,12 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import os
+
 class Category:
     """ The Category class """
 
-    def __init__(self, name, catType, relpath):
+    def __init__(self, name, catType, relpath, hdd = None):
         """
         Constructor
         ---
@@ -41,6 +43,7 @@ class Category:
         self._name = name
         self._type = catType
         self._relpath = relpath
+        self._hdd = hdd
 
     # -- Get Properties --
     def GetName(self):
@@ -62,6 +65,26 @@ class Category:
                          of the category, in relation to the hdd
         """
         return self._relpath
+
+    def GetFullPath(self):
+        """
+        Return (String): The absolute path to the category folder
+                         (based on hdd) or the RelativePath if no
+                         hdd defined
+        """
+
+        if self._hdd == None:
+            return self.GetRelativePath()
+        else:
+            return os.path.join(self._hdd.GetPath(), self.GetRelativePath())
+
+    def GetHdd(self):
+        """
+        Return (HardDrive): The object representing the harddrive
+                            that owns this category or None
+        """
+
+        return self._hdd
 
     # -- Set Properties --
     def SetName(self, name):
@@ -93,3 +116,13 @@ class Category:
         """
 
         self._relpath = relpath
+
+    def SetHdd(self, hdd):
+        """
+        Changes the hdd associated with this category
+        ---
+        Param:
+            @ hdd (HardDrive) - The new harddrive that owns this category
+        """
+
+        self._hdd = hdd

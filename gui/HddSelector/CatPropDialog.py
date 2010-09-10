@@ -111,7 +111,7 @@ class CatPropDialog(wx.Dialog):
 
         return Category(self.txtName.GetValue(), self.cmbType.GetStringSelection(), os.path.relpath(self.dirPath.GetPath(), self._hddPath))
 
-    # -- Events --
+    # -- EVENTS --
     def OnTextNameChanged(self, event):
         """ 
         Checks if the label text is valid and enables the OK

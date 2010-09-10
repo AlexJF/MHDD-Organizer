@@ -122,7 +122,7 @@ class HddSelectorDialog(wx.Dialog):
         hdd = self._hddList[index]
 
         self.lstHdd.SetStringItem(index, 0, hdd.GetLabel(), hdd.Connected())
-        self.lstHdd.SetStringItem(index, 1, hdd.GetLabel())
+        self.lstHdd.SetStringItem(index, 1, hdd.GetPath())
 
     def RemoveHardDriveListView(self, index):
         """
@@ -165,7 +165,7 @@ class HddSelectorDialog(wx.Dialog):
 
         return indexSelectedItem, self._hddList[indexSelectedItem]
 
-    #-------- EVENTS ---------
+    # -- EVENTS --
     def OnListItemSelected(self, event):
         """ Enables the ok, edit and remove buttons """
 

@@ -24,7 +24,7 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import wx
+import wx, os, sys
 from gui.MainFrame import *
 
 class MainApp(wx.App):
@@ -35,8 +35,8 @@ class MainApp(wx.App):
 
         self.SetAppName("MHDD Organizer")
 
-        wx.Image.AddHandler(wx.PNGHandler())
-        wx.Image.AddHandler(wx.JPEGHandler())
+        #wx.Image.AddHandler(wx.PNGHandler())
+        #wx.Image.AddHandler(wx.JPEGHandler())
 
         self.config = wx.FileConfig(style=wx.CONFIG_USE_LOCAL_FILE)
         wx.Config.Set(self.config)
@@ -45,6 +45,11 @@ class MainApp(wx.App):
         self.frame.Show(True)
         self.SetTopWindow(self.frame)
         return True;
+
+scriptDir = os.path.dirname(sys.argv[0])
+
+if scriptDir:
+    os.chdir(scriptDir)
 
 app = MainApp(False)
 app.MainLoop()

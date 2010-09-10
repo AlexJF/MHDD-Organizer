@@ -136,7 +136,7 @@ class HardDrive:
         hddCategoryConfig.read(hddCategoryConfigPath)
 
         for category in hddCategoryConfig.sections():
-            cat = Category(category, hddCategoryConfig.get(category, "Type"), hddCategoryConfig.get(category, "Path"))
+            cat = Category(category, hddCategoryConfig.get(category, "Type"), hddCategoryConfig.get(category, "Path"), self)
             self._categoryList.append(cat)
 
         return True
@@ -154,6 +154,9 @@ class HardDrive:
 
         self._categoryListDirty = True
         self._categoryList = categoryList
+
+        for category in self._categoryList:
+            category.SetHdd(self)
 
     def SaveCategoryList(self):
         """
