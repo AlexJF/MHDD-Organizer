@@ -30,7 +30,7 @@ from Category import *
 class HardDrive:
     """ The Category class """
 
-    def __init__(self, hdduuid = None, label = None, path = None, catList = []):
+    def __init__(self, hdduuid = None, label = "", path = "", catList = []):
         """ 
         Constructor
         ---

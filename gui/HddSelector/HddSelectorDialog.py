@@ -33,12 +33,11 @@ from classes.HardDriveList import *
 class HddSelectorDialog(wx.Dialog):
     """ The Hdd Selector Dialog class """
 
-
     def __init__(self, parent):
         """ Constructor """
 
         # -- Private Variables Initialization --
-        self._hddList = HardDriveList()
+        self.__hddList = HardDriveList()
 
         # -- Panel Initialization --
         wx.Dialog.__init__(self, parent, wx.ID_ANY, "Please Select a HDD")
@@ -47,7 +46,8 @@ class HddSelectorDialog(wx.Dialog):
         self.szrBaseVert = wx.BoxSizer(wx.VERTICAL)
         self.szrBaseHori = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.lstHdd = wx.ListView(self, style = wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.SIMPLE_BORDER)
+        self.lstHdd = wx.ListView(self, style = wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.SUNKEN_BORDER)
+        self.lstHdd.SetMinSize((380, 200))
         self.lstHdd.InsertColumn(0, "Label")
         self.lstHdd.SetColumnWidth(0, 180)
         self.lstHdd.InsertColumn(1, "Path")
@@ -84,7 +84,7 @@ class HddSelectorDialog(wx.Dialog):
         self.szrBaseVert.Add(self.szrBaseHori, 1, wx.EXPAND | wx.ALL, 5)
         self.szrBaseVert.Add(self.szrDialogButtons, 0, wx.EXPAND | wx.ALL, 5)
 
-        self.SetSizer(self.szrBaseVert)
+        self.SetSizerAndFit(self.szrBaseVert)
 
         # -- Event Binding --
         self.lstHdd.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnListItemSelected)
@@ -95,6 +95,8 @@ class HddSelectorDialog(wx.Dialog):
         self.btnRem.Bind(wx.EVT_BUTTON, self.OnHddRem)
         self.btnEdit.Bind(wx.EVT_BUTTON, self.OnHddEdit)
         self.btnRefresh.Bind(wx.EVT_BUTTON, self.OnHddRefresh)
+
+        self.btnOk.Bind(wx.EVT_BUTTON, self.OnHddSelectorClose)
 
         self.ReloadHddList()
 
@@ -119,7 +121,7 @@ class HddSelectorDialog(wx.Dialog):
             @ index - Index of the harddrive to update
         """
 
-        hdd = self._hddList[index]
+        hdd = self.__hddList[index]
 
         self.lstHdd.SetStringItem(index, 0, hdd.GetLabel(), hdd.Connected())
         self.lstHdd.SetStringItem(index, 1, hdd.GetPath())
@@ -137,7 +139,7 @@ class HddSelectorDialog(wx.Dialog):
     def ReloadHddList(self):
         """ Reloads Hdd info from the config and refreshes the listview """
 
-        self._hddList.LoadFromConfig()
+        self.__hddList.LoadFromConfig()
         self.RefreshHddList()
 
 
@@ -145,7 +147,7 @@ class HddSelectorDialog(wx.Dialog):
         """ Refreshes the listview according to the Hdd info in memory """
 
         self.lstHdd.DeleteAllItems()
-        for hardDrive in self._hddList:
+        for hardDrive in self.__hddList:
             self.AddHardDriveListView(hardDrive)
 
 
@@ -163,7 +165,7 @@ class HddSelectorDialog(wx.Dialog):
         if indexSelectedItem == -1:
             return -1, None
 
-        return indexSelectedItem, self._hddList[indexSelectedItem]
+        return indexSelectedItem, self.__hddList[indexSelectedItem]
 
     # -- EVENTS --
     def OnListItemSelected(self, event):
@@ -195,7 +197,7 @@ class HddSelectorDialog(wx.Dialog):
         if dlgHddProp.ShowModal() == wx.ID_OK:
             newHdd = dlgHddProp.GetHdd()
 
-            self._hddList.Add(newHdd)
+            self.__hddList.Add(newHdd)
             self.AddHardDriveListView(newHdd)
 
         dlgHddProp.Destroy()
@@ -209,7 +211,7 @@ class HddSelectorDialog(wx.Dialog):
             return
 
         self.RemoveHardDriveListView(selectedIndex)
-        self._hddList.Remove(selectedIndex)
+        self.__hddList.Remove(selectedIndex)
         self.RefreshHddList()
 
     def OnHddEdit(self, event):
@@ -225,7 +227,7 @@ class HddSelectorDialog(wx.Dialog):
         if dlgHddProp.ShowModal() == wx.ID_OK:
             editedHdd = dlgHddProp.GetHdd()
             
-            self._hddList.Edit(selectedIndex, editedHdd)
+            self.__hddList.Edit(selectedIndex, editedHdd)
             self.UpdateHardDriveListView(selectedIndex)
 
         dlgHddProp.Destroy()
@@ -234,3 +236,9 @@ class HddSelectorDialog(wx.Dialog):
         """ Refreshes the Hdd list """
 
         self.RefreshHddList()
+
+    def OnHddSelectorClose(self, event):
+        """ Saves changes made """
+
+        self.__hddList.SaveToConfig()
+        event.Skip()

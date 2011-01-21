@@ -35,25 +35,25 @@ class HardDriveList:
     def __init__(self):
         """ Constructor """
 
-        self.container = []
+        self.__container = []
 
     def __len__(self):
         """ Returns the number of harddrives in the list """
 
-        return len(self.container)
+        return len(self.__container)
 
     def __getitem__(self, key):
         """ Returns the harddrive with the specified key """
 
         if isinstance(key, int):
-            return self.container[key]
+            return self.__container[key]
         else:
             raise TypeError
 
     def __iter__(self):
         """ Allows iteration over the container """
 
-        for harddrive in self.container:
+        for harddrive in self.__container:
             yield harddrive
 
     def Add(self, hardDrive):
@@ -65,9 +65,9 @@ class HardDriveList:
         if not hardDrive.GetLabel() or not hardDrive.GetPath():
             return False
 
-        self.container.append(hardDrive)
+        self.__container.append(hardDrive)
 
-        if self.configSync:
+        if self.__configSync:
             config = wx.Config.Get()
             config.SetPath("/drives")
 
@@ -88,14 +88,14 @@ class HardDriveList:
         if not newHardDrive.GetLabel() or not newHardDrive.GetPath():
             return
 
-        hardDrive = self.container[index]
+        hardDrive = self.__container[index]
 
         hardDrive.SetLabel(newHardDrive.GetLabel())
         hardDrive.SetPath(newHardDrive.GetPath())
         hardDrive.SetCategoryList(newHardDrive.GetCategoryList())
         hardDrive.SaveCategoryList()
 
-        if self.configSync:
+        if self.__configSync:
             hddUuid = hardDrive.GetUuid()
 
             config = wx.Config.Get()
@@ -107,8 +107,8 @@ class HardDriveList:
     def Remove(self, index):
         """ Removes a harddrive from the list """
 
-        if self.configSync:
-            hdd = self.container[index]
+        if self.__configSync:
+            hdd = self.__container[index]
 
             config = wx.Config.Get()
             config.SetPath("/drives")
@@ -116,7 +116,7 @@ class HardDriveList:
             if config.HasGroup(hdd.GetUuid()):
                 config.DeleteGroup(hdd.GetUuid())
 
-        del self.container[index]
+        del self.__container[index]
 
     def SaveToConfig(self, configSync = True):
         """
@@ -127,13 +127,13 @@ class HardDriveList:
         configuration file of the application.
         """
 
-        self.configSync = configSync
+        self.__configSync = configSync
 
         config = wx.Config.Get()
         config.DeleteGroup("/drives")
         config.SetPath("/drives")
 
-        for hardDrive in self.container:
+        for hardDrive in self.__container:
             config.Write(hardDrive.GetUuid() + "/Label", hardDrive.GetLabel())
             config.Write(hardDrive.GetUuid() + "/Path", hardDrive.GetPath())
         
@@ -147,8 +147,8 @@ class HardDriveList:
         configuration file of the application.
         """
 
-        self.container = []
-        self.configSync = configSync
+        self.__container = []
+        self.__configSync = configSync
 
         config = wx.Config.Get()
         config.SetPath("/drives")
@@ -159,7 +159,7 @@ class HardDriveList:
             hdd = HardDrive(uuid, config.Read(uuid + "/Label"), config.Read(uuid + "/Path"))
 
             if hdd.GetLabel() and hdd.GetPath():
-                self.container.append(hdd)
+                self.__container.append(hdd)
         
             (moreDrives, uuid, nextDriveIndex) = config.GetNextGroup(nextDriveIndex)
 

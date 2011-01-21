@@ -43,18 +43,10 @@ class HddPropDialog(wx.Dialog):
         """
 
         # -- Private Variables Initialization --
-        self._originalHardDrive = hardDrive
-        self._hardDriveDirty = True
-        self._categoryList = []
-        label = ""
-        path = ""
-
-        if hardDrive:
-            label = hardDrive.GetLabel()
-            path = hardDrive.GetPath()
-            hardDrive.LoadCategoryList()
-            self._categoryList = list(hardDrive.GetCategoryList())
-            self._hardDriveDirty = False
+        if hardDrive is None:
+            self.__hardDrive = HardDrive()
+        else:
+            self.__hardDrive = hardDrive
 
         # -- Panel Initialization --
         wx.Dialog.__init__(self, parent, wx.ID_ANY, "HDD Editor")
@@ -68,24 +60,19 @@ class HddPropDialog(wx.Dialog):
         self.szrCatButtons = wx.BoxSizer(wx.VERTICAL)
 
         self.lblLabel = wx.StaticText(self, label="Label:")
-        self.txtLabel = wx.TextCtrl(self, value=label)
+        self.txtLabel = wx.TextCtrl(self, value=self.__hardDrive.GetLabel())
 
         self.dirPath = wx.DirPickerCtrl(self)
 
-        if path:
-            self.dirPath.SetPath(path)
-        else:
-            self.dirPath.SetPath("/")
+        self.dirPath.SetPath(self.__hardDrive.GetPath())
 
         self.lblCat = wx.StaticText(self, label="Categories")
 
-        self.lstCat = wx.ListView(self, style = wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_SORT_ASCENDING | wx.SIMPLE_BORDER, size=(600, 200))
+        self.lstCat = wx.ListView(self, style = wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_SORT_ASCENDING | wx.SUNKEN_BORDER, size=(380, 200))
         self.lstCat.InsertColumn(0, "Name")
         self.lstCat.SetColumnWidth(0, 180)
-        self.lstCat.InsertColumn(1, "Type")
-        self.lstCat.SetColumnWidth(1, 100)
-        self.lstCat.InsertColumn(2, "Rel. Path")
-        self.lstCat.SetColumnWidth(2, 200)
+        self.lstCat.InsertColumn(1, "Rel. Path")
+        self.lstCat.SetColumnWidth(1, 200)
 
         self.btnCatAdd = wx.BitmapButton(self, bitmap=wx.Bitmap("gui/images/add.png", wx.BITMAP_TYPE_PNG))
         self.btnCatRem = wx.BitmapButton(self, bitmap=wx.Bitmap("gui/images/rem.png", wx.BITMAP_TYPE_PNG))
@@ -137,7 +124,7 @@ class HddPropDialog(wx.Dialog):
     def PopulateList(self):
         """ Given a list of categories, populates the listview """
 
-        for category in self._categoryList:
+        for category in self.__hardDrive.GetCategoryList():
             self.AddCategoryListView(category)
 
     def AddCategoryListView(self, category):
@@ -149,8 +136,7 @@ class HddPropDialog(wx.Dialog):
         """
 
         index = self.lstCat.InsertStringItem(self.lstCat.GetItemCount(), category.GetName())
-        self.lstCat.SetStringItem(index, 1, category.GetType())
-        self.lstCat.SetStringItem(index, 2, category.GetRelativePath())
+        self.lstCat.SetStringItem(index, 1, category.GetRelativePath())
 
     def UpdateCategoryListView(self, index, category):
         """
@@ -162,8 +148,7 @@ class HddPropDialog(wx.Dialog):
         """
 
         self.lstCat.SetStringItem(index, 0, category.GetName())
-        self.lstCat.SetStringItem(index, 1, category.GetType())
-        self.lstCat.SetStringItem(index, 2, category.GetRelativePath())
+        self.lstCat.SetStringItem(index, 1, category.GetRelativePath())
 
     def RemCategoryListView(self, index):
         """ 
@@ -183,11 +168,7 @@ class HddPropDialog(wx.Dialog):
         Return: HardDrive object
         """
 
-        if not self._hardDriveDirty:
-            return self._originalHardDrive
-        else:
-            print str(self._categoryList)
-            return HardDrive(None, self.txtLabel.GetValue(), self.dirPath.GetPath(), self._categoryList)
+        return self.__hardDrive
 
     # -- EVENTS --
     def OnTextLabelChanged(self, event):
@@ -197,13 +178,12 @@ class HddPropDialog(wx.Dialog):
         """
 
         label = self.txtLabel.GetValue()
+        self.__hardDrive.SetLabel(label)
 
         if label.isspace() or not label:
             self.btnOk.Disable()
         else:
             self.btnOk.Enable()
-
-        self._hardDriveDirty = True
 
     def OnDirPathChanged(self, event):
         """
@@ -211,7 +191,14 @@ class HddPropDialog(wx.Dialog):
         flag to True
         """
 
-        self._hardDriveDirty = True
+        self.__hardDrive.SetPath(self.dirPath.GetPath())
+        index = 0
+
+        for category in self.__hardDrive.GetCategoryList():
+            if not os.path.isdir(category.GetFullPath()):
+                category.SetRelPath("")
+                self.UpdateCategoryListView(index, category)
+            index += 1
 
     def OnListItemSelected(self, event):
         """ Enables the ok, edit and remove buttons """
@@ -239,13 +226,12 @@ class HddPropDialog(wx.Dialog):
         Ask the user for new category details and add it to the list
         """
 
-        dlgCatProp = CatPropDialog(self, self.dirPath.GetPath())
+        dlgCatProp = CatPropDialog(self, self.__hardDrive)
 
         if dlgCatProp.ShowModal() == wx.ID_OK:
             newCategory = dlgCatProp.GetCategory()
-            self._categoryList.append(newCategory)
+            self.__hardDrive.GetCategoryList().append(newCategory)
             self.AddCategoryListView(newCategory)
-            self._hardDriveDirty = True
 
     def OnCatRem(self, event):
         """
@@ -258,8 +244,7 @@ class HddPropDialog(wx.Dialog):
             return
         
         self.RemCategoryListView(selectedIndex)
-        self._categoryList.Remove(selectedIndex)
-        self._hardDriveDirty = True
+        self.__hardDrive.GetCategoryList().pop(selectedIndex)
 
     def OnCatEdit(self, event):
         """
@@ -271,12 +256,11 @@ class HddPropDialog(wx.Dialog):
         if selectedIndex == -1:
             return
 
-        dlgCatProp = CatPropDialog(self, self.dirPath.GetPath(), self._categoryList[selectedIndex])
+        dlgCatProp = CatPropDialog(self, self.dirPath.GetPath(), self.__hardDrive.GetCategoryList()[selectedIndex])
 
         if dlgCatProp.ShowModal() == wx.ID_OK:
             editedCategory = dlgCatProp.GetCategory()
-            self._categoryList[selectedIndex] = editedCategory
+            self.__hardDrive.GetCategoryList()[selectedIndex] = editedCategory
             self.UpdateCategoryListView(selectedIndex, editedCategory) 
-            self._hardDriveDirty = True
 
 

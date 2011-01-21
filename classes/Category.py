@@ -1,9 +1,8 @@
 #! /usr/bin/env python
 
 """
-File: Category.pye
+File: Category.py
 Author: Revolt
-Date: 28-08-2010
 --------------------------
 Desc:
     This file contains the definition of the Category class
@@ -25,25 +24,25 @@ Copyright (C) 2010 Revolt
 """
 
 import os
+from gui.IMDBSearchDialog import *
 
 class Category:
     """ The Category class """
 
-    def __init__(self, name, catType, relpath, hdd = None):
+    def __init__(self, name, relpath, hdd = None):
         """
         Constructor
         ---
         Params:
             @ name (String) - The name of this category
-            @ type (String) - The type of this category
             @ relpath (String) - The path to the folder that is the root of the
                         category, in relation to the hdd path
+            @ hdd (HardDrive) - The harddrive that owns this category
         """
 
-        self._name = name
-        self._type = catType
-        self._relpath = relpath
-        self._hdd = hdd
+        self.__name = name
+        self.__relpath = relpath
+        self.__hdd = hdd
 
     # -- Get Properties --
     def GetName(self):
@@ -51,20 +50,14 @@ class Category:
         Return (String): The name of this category
         """
 
-        return self._name
-
-    def GetType(self):
-        """
-        Return (String): The type of this category
-        """
-        return self._type
+        return self.__name
 
     def GetRelativePath(self):
         """
         Return (String): The path to the folder that is the root
                          of the category, in relation to the hdd
         """
-        return self._relpath
+        return self.__relpath
 
     def GetFullPath(self):
         """
@@ -73,10 +66,10 @@ class Category:
                          hdd defined
         """
 
-        if self._hdd == None:
+        if self.__hdd == None:
             return self.GetRelativePath()
         else:
-            return os.path.join(self._hdd.GetPath(), self.GetRelativePath())
+            return os.path.join(self.__hdd.GetPath(), self.GetRelativePath())
 
     def GetHdd(self):
         """
@@ -84,7 +77,7 @@ class Category:
                             that owns this category or None
         """
 
-        return self._hdd
+        return self.__hdd
 
     # -- Set Properties --
     def SetName(self, name):
@@ -95,17 +88,7 @@ class Category:
             @ name (String) - The new name of the category
         """
 
-        self._name = name
-
-    def SetType(self, catType):
-        """
-        Changes the type of this category
-        ---
-        Param:
-            @ type (String) - The new type of the category
-        """
-
-        self._type = catType
+        self.__name = name
 
     def SetRelPath(self, relpath):
         """
@@ -115,7 +98,7 @@ class Category:
             @ relpath (String) - The new relpath of the category
         """
 
-        self._relpath = relpath
+        self.__relpath = relpath
 
     def SetHdd(self, hdd):
         """
@@ -125,4 +108,55 @@ class Category:
             @ hdd (HardDrive) - The new harddrive that owns this category
         """
 
-        self._hdd = hdd
+        self.__hdd = hdd
+
+    # -- Methods --
+    def GetMovieList(self):
+        """
+        Retrieves the list of movies managed by this category
+        ---
+        Returns (List of Movies): The list of movies under this
+                                  category.
+        ---
+        NOTE: This only works if the category is managed by a HDD
+        """
+
+        if not self.GetHdd():
+            return None
+
+        objList = []
+        imdbSearchList = []
+        catFullPath = self.GetFullPath()
+
+        items = os.listdir(catFullPath)
+        i = 0
+
+        dlgProgress = wx.ProgressDialog("Parsing category entries", "Preparing \
+                                        entry list.", len(items), style = wx.PD_APP_MODAL | wx.PD_AUTO_HIDE)
+
+        dlgProgress.Show()
+
+        for item in items:
+            i += 1
+            itemFullPath = os.path.join(catFullPath, item)
+            dlgProgress.Update(i, "Parsing '" + item + "'")
+            if os.path.isdir(itemFullPath):
+                try:
+                    obj = Movie(itemFullPath)
+
+                    if obj:
+                        objList.append(obj)
+                        if not obj.GetLoadedLocalInfo():
+                            imdbSearchList.append(obj)
+
+                except ValueError as e:
+                    print str(e)
+
+        if len(imdbSearchList) > 0:
+            dlgIMDBSearch = IMDBSearchDialog(None, self.__name, imdbSearchList)
+
+            if dlgIMDBSearch.ShowModal() == wx.ID_OK:
+                for movie in imdbSearchList:
+                    movie.LoadInfoFromIMDB()
+
+        return objList

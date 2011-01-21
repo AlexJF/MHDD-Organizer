@@ -32,25 +32,23 @@ from classes.Category import *
 class CatPropDialog(wx.Dialog):
     """ The Cat Prop Dialog class """
 
-    def __init__(self, parent, hddPath, category = None):
+    __category = None
+
+    def __init__(self, parent, hdd, category = None):
         """
         Constructor 
         ---
         Params:
-            @ hddPath (String) - Path to the hdd that will own this category
+            @parent - Owner of the dialog.
+            @ hdd (HardDrive) - The hdd in which to add the category
             @ category (Category) - Category to edit or None
         """
 
         # -- Private Variables Initialization --
-        self._hddPath = hddPath
-        name = ""
-        type = ""
-        relpath = ""
-
         if category:
-            name = category.GetName()
-            type = category.GetType()
-            relpath = category.GetRelativePath()
+            self.__category = category
+        else:
+            self.__category = Category("", "", hdd)
 
         # -- Panel Initialization --
         wx.Dialog.__init__(self, parent, wx.ID_ANY, "Category Editor")
@@ -59,27 +57,16 @@ class CatPropDialog(wx.Dialog):
         self.szrBaseVert = wx.BoxSizer(wx.VERTICAL)
 
         self.szrName = wx.BoxSizer(wx.HORIZONTAL)
-        self.szrType = wx.BoxSizer(wx.HORIZONTAL)
         self.szrPath = wx.BoxSizer(wx.HORIZONTAL)
 
         self.lblName = wx.StaticText(self, label = "Name:")
-        self.txtName = wx.TextCtrl(self, value=name)
-
-        self.lblType = wx.StaticText(self, label = "Type:")
-        self.cmbType = wx.ComboBox(self, choices = ("Movies",), style = wx.CB_READONLY | wx.CB_SORT)
-
-        self.cmbType.SetSelection(0)
-        if type:
-            self.cmbType.SetStringSelection(type)
+        self.txtName = wx.TextCtrl(self, value=self.__category.GetName())
 
         self.dirPath = wx.DirPickerCtrl(self)
-        self.dirPath.SetPath(os.path.join(self._hddPath, relpath))
+        self.dirPath.SetPath(self.__category.GetFullPath())
 
         self.szrName.Add(self.lblName, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
         self.szrName.Add(self.txtName, 1, wx.ALL, 5)
-
-        self.szrType.Add(self.lblType, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-        self.szrType.Add(self.cmbType, 1, wx.ALL, 5)
 
         self.szrPath.Add(self.dirPath, 1, wx.ALL, 5)
 
@@ -93,7 +80,6 @@ class CatPropDialog(wx.Dialog):
             self.btnOk.Disable()
 
         self.szrBaseVert.Add(self.szrName, 0, wx.EXPAND | wx.ALL, 5)
-        self.szrBaseVert.Add(self.szrType, 0, wx.EXPAND | wx.ALL, 5)
         self.szrBaseVert.Add(self.szrPath, 0, wx.EXPAND | wx.ALL, 5)
         self.szrBaseVert.Add(self.szrDialogButtons, 0, wx.EXPAND | wx.ALL, 5)
 
@@ -109,7 +95,7 @@ class CatPropDialog(wx.Dialog):
         Return (Category): Category object with input data
         """
 
-        return Category(self.txtName.GetValue(), self.cmbType.GetStringSelection(), os.path.relpath(self.dirPath.GetPath(), self._hddPath))
+        return self.__category
 
     # -- EVENTS --
     def OnTextNameChanged(self, event):
@@ -123,6 +109,7 @@ class CatPropDialog(wx.Dialog):
         if name.isspace() or not name:
             self.btnOk.Disable()
         else:
+            self.__category.SetName(name)
             self.btnOk.Enable()
 
     def OnDirPathChanged(self, event):
@@ -136,5 +123,8 @@ class CatPropDialog(wx.Dialog):
         # If the hddPath isn't present in the newPath then it is
         # invalid because the category path must be contained in
         # the respective hdd
-        if newPath.find(self._hddPath) == -1:
-            seld.dirPath.SetPath(self._hddPath)
+        if newPath.find(self.__category.GetHdd().GetPath()) == -1:
+            self.btnOk.Disable()
+            return
+
+        self.__category.SetRelPath(os.path.relpath(newPath, self.__category.GetHdd().GetPath()))
