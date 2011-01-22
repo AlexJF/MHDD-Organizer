@@ -30,16 +30,14 @@ from imdb import IMDb
 class Movie:
     """ The Movie class """
 
-    __loadedLocalInfo = False
     __name = ""
-    __realTitle = ""
-    __imdbLink = ""
+    __title = ""
+    __imdbID = ""
     __year = ""
-    __modDate = None
-    __rating = ""
+    __rating = 0
     __genres = []
     __plot = ""
-    __director = ""
+    __directors = []
     __actors = []
 
     def __init__(self, dirPath):
@@ -60,7 +58,6 @@ class Movie:
 
         for f in os.listdir(dirPath):
             extension = os.path.splitext(f)[1][1:].lower()
-            print extension
             if extension in movieExtensions:
                 foundMovie = True
 
@@ -84,37 +81,30 @@ class Movie:
 
         return self.__name
 
-    def GetRealTitle(self):
+    def GetTitle(self):
         """
         Return (String): The real title of the movie.
         """
 
-        return self.__realTitle
+        return self.__title
 
-    def GetIMDBLink(self):
+    def GetIMDBID(self):
         """
-        Return (String): The link to the imdb page correspondent to this movie.
+        Return (String): The id of the imdb entry associated with this movie.
         """
 
-        return self.__imdbLink
+        return self.__imdbID
 
     def GetYear(self):
         """
         Return (String): The year of release of the movie.
         """
 
-        return self.__relDate
-
-    def GetModDate(self):
-        """
-        Return (Date): The date since the last modification.
-        """
-
-        return self.__modDate
+        return self.__year
 
     def GetRating(self):
         """
-        Return (Float): The rating of the movie.
+        Return (Int): The rating of the movie (between 1 and 10)
         """
 
         return self.__rating
@@ -138,7 +128,7 @@ class Movie:
         Return (List of Strings): The directors of the movie.
         """
 
-        return self.__director
+        return self.__directors
 
     def GetActors(self):
         """
@@ -157,23 +147,23 @@ class Movie:
 
         self.__name = name
 
-    def SetRealTitle(self, title):
+    def SetTitle(self, title):
         """
         Sets the title of the movie.
         ---
         title (String) - The title of the movie.
         """
 
-        self.__realTitle = title
+        self.__title = title
 
-    def SetIMDBLink(self, url):
+    def SetIMDBID(self, id):
         """
-        Sets the IMDB url of the movie.
+        Sets the IMDB id of the movie.
         ---
-        url (String) - The IMDB url of the movie.
+        url (String) - The IMDB id of the movie.
         """
 
-        self.__imdbLink = url
+        self.__imdbID = id
 
     def SetYear(self, year):
         """
@@ -182,14 +172,17 @@ class Movie:
         year (String) - The year of release of the movie.
         """
 
-        self.__relDate = relDate
+        self.__year = year
 
     def SetRating(self, rating):
         """
         Sets the rating of the movie.
         ---
-        rating (Float) - The rating of the movie.
+        rating (int) - The rating of the movie (between 1 and 10)
         """
+
+        if rating < 1 or rating > 10:
+            return
 
         self.__rating = rating
 
@@ -218,7 +211,7 @@ class Movie:
         director (List of Strings) - The directors of the movie.
         """
 
-        self.__director = director
+        self.__directors = directors
 
     def SetActors(self, actors):
         """
@@ -246,31 +239,28 @@ class Movie:
         movieInfoParser.read(infoFilePath)
 
         infoEntries = movieInfoParser.items("info")
+        separator = "||"
 
         for entry in infoEntries:
             name, value = entry
 
-            if name == "moddate":
-                self.__modDate = date.fromtimestamp(value)
-            elif name == "title":
-                self.__realTitle = value
+            if name == "title":
+                self.__title = value
             elif name == "imdb":
-                self.__imdbLink = value
+                self.__imdbID = value
             elif name == "year":
                 self.__year = value
             elif name == "rating":
-                value = float(value)
+                value = int(value)
                 self.__rating = value if (value >= 0 and value <= 10) else 0
-            elif name == "genre":
-                self.__genre = value
+            elif name == "genres":
+                self.__genres = value.split(separator)
             elif name == "plot":
                 self.__plot = value
-            elif name == "director":
-                self.__director = value
+            elif name == "directors":
+                self.__directors = value.split(separator)
             elif name == "actors":
-                self.__actors = value.split("||")
-
-        self.__loadedLocalInfo = True
+                self.__actors = value.split(separator)
 
         return True
 
@@ -279,14 +269,14 @@ class Movie:
         Loads the movie info from IMDB.
         """
 
-        if (self.__imdbLink == ""):
+        if (self.__imdbID == ""):
             return
 
         ia = IMDb()
 
-        imdbMovieObj = ia.get_movie(self.__imdbLink)
+        imdbMovieObj = ia.get_movie(self.__imdbID)
 
-        self.__realTitle = imdbMovieObj['title']
+        self.__title = imdbMovieObj['title']
         self.__year = imdbMovieObj['year']
         self.__rating = float(imdbMovieObj['rating'])
         self.__genres = imdbMovieObj['genres']
@@ -302,8 +292,9 @@ class Movie:
         Saves movie info to a config file in the dir.
         """
         config = wx.Config.Get()
-        infoFolderPath = os.path.join(self.__dirPath, config.Read("/MovieInfoFolderName"))
-        infoFilePath = os.path.join(dataFolderPath, "info.ini")
+        #infoFolderPath = os.path.join(self.__dirPath, config.Read("/MovieInfoFolderName"))
+        infoFolderPath = os.path.join(self.__dirPath, ".mhddorganizer")
+        infoFilePath = os.path.join(infoFolderPath, "info.ini")
 
         if not os.path.isdir(infoFolderPath):
             try:
@@ -328,15 +319,16 @@ class Movie:
         if not movieInfoParser.has_section(infoSection):
             movieInfoParser.add_section(infoSection)
 
-        movieInfoParser.set(infoSection, "modddate", time.mktime(self.__modDate.timetuple()))
-        movieInfoParser.set(infoSection, "title", self.__realTitle)
-        movieInfoParser.set(infoSection, "imdb", self.__imdbLink)
+        separator = "||"
+
+        movieInfoParser.set(infoSection, "title", self.__title)
+        movieInfoParser.set(infoSection, "imdb", self.__imdbID)
         movieInfoParser.set(infoSection, "year", self.__year)
         movieInfoParser.set(infoSection, "rating", self.__rating)
-        movieInfoParser.set(infoSection, "genre", self.__genre)
+        movieInfoParser.set(infoSection, "genres", separator.join(self.__genres))
         movieInfoParser.set(infoSection, "plot", self.__plot)
-        movieInfoParser.set(infoSection, "director", self.__director)
-        movieInfoParser.set(infoSection, "actors", string.join(self.__actors, "||"))
+        movieInfoParser.set(infoSection, "directors", separator.join(self.__directors))
+        movieInfoParser.set(infoSection, "actors", separator.join(self.__actors))
 
         movieInfoParser.write(configFile)
 

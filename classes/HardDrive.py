@@ -44,11 +44,12 @@ class HardDrive:
         if not hdduuid:
             hdduuid = str(uuid.uuid4())
 
-        self._uuid = hdduuid 
-        self._label = label
-        self._path = path
-        self._categoryListDirty = True
-        self._categoryList = catList
+        self.__uuid = hdduuid 
+        self.__label = label
+        self.__path = path
+        self.__loaded = False
+        self.__categoryListDirty = True
+        self.__categoryList = catList
 
     # -- Get Properties --
     def GetUuid(self):
@@ -56,28 +57,32 @@ class HardDrive:
         Return: UUID (as string) of the HDD
         """
 
-        return self._uuid
+        return self.__uuid
 
     def GetLabel(self):
         """
         Return: Label of the HDD
         """
         
-        return self._label
+        return self.__label
 
     def GetPath(self):
         """
         Return: Path of the HDD
         """
 
-        return self._path
+        return self.__path
 
     def GetCategoryList(self):
         """
         Return: Category list associated with this HDD
         """
 
-        return self._categoryList
+        if not self.__loaded:
+            self.LoadCategoryList()
+            self.__loaded = True
+
+        return self.__categoryList
 
     # -- Set Properties --
     def SetLabel(self, label):
@@ -88,7 +93,7 @@ class HardDrive:
             @ label - The new label for this HDD
         """
 
-        self._label = label
+        self.__label = label
 
     def SetPath(self, path):
         """
@@ -98,7 +103,7 @@ class HardDrive:
             @ path - The new path for this HDD
         """
 
-        self._path = path
+        self.__path = path
 
     # -- Methods --
     def Connected(self):
@@ -108,7 +113,7 @@ class HardDrive:
         Return: True if connected/False otherwise
         """
 
-        return os.path.isdir(self._path)
+        return os.path.isdir(self.__path)
 
     def LoadCategoryList(self, force = False):
         """ 
@@ -120,24 +125,25 @@ class HardDrive:
         Return: True on success/False on failure
         """
 
-        if not self._categoryListDirty and not force:
+        if not self.__categoryListDirty and not force:
             return True
 
-        self._categoryList = []
-        self._categoryListDirty = False
-
-        hddConfigFolderPath = os.path.join(self._path, ".mhddorganizer")
+        hddConfigFolderPath = os.path.join(self.__path, ".mhddorganizer")
         hddCategoryConfigPath = os.path.join(hddConfigFolderPath, "categories.ini")
 
         if not os.path.exists(hddCategoryConfigPath):
             return False
 
+        self.__categoryList = []
+
         hddCategoryConfig = ConfigParser.ConfigParser()
         hddCategoryConfig.read(hddCategoryConfigPath)
 
         for category in hddCategoryConfig.sections():
-            cat = Category(category, hddCategoryConfig.get(category, "Type"), hddCategoryConfig.get(category, "Path"), self)
-            self._categoryList.append(cat)
+            cat = Category(category, hddCategoryConfig.get(category, "Path"), self)
+            self.__categoryList.append(cat)
+
+        self.__categoryListDirty = False
 
         return True
 
@@ -152,10 +158,10 @@ class HardDrive:
               HDD call SaveCategoryList()
         """
 
-        self._categoryListDirty = True
-        self._categoryList = categoryList
+        self.__categoryListDirty = True
+        self.__categoryList = categoryList
 
-        for category in self._categoryList:
+        for category in self.__categoryList:
             category.SetHdd(self)
 
     def SaveCategoryList(self):
@@ -165,13 +171,13 @@ class HardDrive:
         Return: True on success/False on failure
         """
 
-        if not self._categoryListDirty:
+        if not self.__categoryListDirty:
             return True
 
-        if not os.path.isdir(self._path):
+        if not os.path.isdir(self.__path):
             return False
 
-        hddConfigFolderPath = os.path.join(self._path, ".mhddorganizer")
+        hddConfigFolderPath = os.path.join(self.__path, ".mhddorganizer")
         hddCategoryConfigPath = os.path.join(hddConfigFolderPath, "categories.ini")
 
         if not os.path.isdir(hddConfigFolderPath):
@@ -188,17 +194,16 @@ class HardDrive:
 
         hddCategoryConfig = ConfigParser.ConfigParser()
 
-        for category in self._categoryList:
+        for category in self.__categoryList:
             if not hddCategoryConfig.has_section(category.GetName()):
                 hddCategoryConfig.add_section(category.GetName())
 
-            hddCategoryConfig.set(category.GetName(), "Type", category.GetType())
             hddCategoryConfig.set(category.GetName(), "Path", category.GetRelativePath())
 
         hddCategoryConfig.write(configFile)
 
         configFile.close()
 
-        self._categoryListDirty = False
+        self.__categoryListDirty = False
 
         return True

@@ -24,7 +24,7 @@ Copyright (C) 2010 Revolt
 """
 
 import os
-from gui.IMDBSearchDialog import *
+from Movie import *
 
 class Category:
     """ The Category class """
@@ -125,38 +125,20 @@ class Category:
             return None
 
         objList = []
-        imdbSearchList = []
         catFullPath = self.GetFullPath()
 
         items = os.listdir(catFullPath)
-        i = 0
-
-        dlgProgress = wx.ProgressDialog("Parsing category entries", "Preparing \
-                                        entry list.", len(items), style = wx.PD_APP_MODAL | wx.PD_AUTO_HIDE)
-
-        dlgProgress.Show()
 
         for item in items:
-            i += 1
             itemFullPath = os.path.join(catFullPath, item)
-            dlgProgress.Update(i, "Parsing '" + item + "'")
             if os.path.isdir(itemFullPath):
                 try:
                     obj = Movie(itemFullPath)
 
                     if obj:
                         objList.append(obj)
-                        if not obj.GetLoadedLocalInfo():
-                            imdbSearchList.append(obj)
 
                 except ValueError as e:
                     print str(e)
-
-        if len(imdbSearchList) > 0:
-            dlgIMDBSearch = IMDBSearchDialog(None, self.__name, imdbSearchList)
-
-            if dlgIMDBSearch.ShowModal() == wx.ID_OK:
-                for movie in imdbSearchList:
-                    movie.LoadInfoFromIMDB()
 
         return objList
