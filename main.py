@@ -34,6 +34,7 @@ class MainApp(wx.App):
         """ What to do on application load """
 
         self.SetAppName("MHDD Organizer")
+        self.SetClassName("MHDDOrganizer")
 
         #wx.Image.AddHandler(wx.PNGHandler())
         #wx.Image.AddHandler(wx.JPEGHandler())

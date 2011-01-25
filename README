@@ -5,20 +5,19 @@ ABOUT
     and building a virtual database of all the movies in the disk,
     along with their IMDB or custom infos.
 
-    It will also have the ability to save a teaser image with each
-    movie containing important data like year, producer, main actors
-    and such, so that you can check movie info right from your MHDD.
+    This database may be cached locally so that changes and searches
+    can be made without the HDD present and, when connected, those
+    changes should sync with the information in the hard drive disk.
 
 
 USING
     
-    MHDD Organizer is programmed in Python, therefore no building is
-    needed.
-
-    It does, however, require the following dependencies to run:
-      - Python 2.6
+    MHDD Organizer is programmed in Python 2.7 and has the following
+    dependencies:
       - wxPython
+      - IMDbPY
 
     To launch the application run:
     $ python main.py
     In the application's root directory
+    (Atleast until I package it properly ;p)

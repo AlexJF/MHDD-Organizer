@@ -24,13 +24,13 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import wx, os, uuid, ConfigParser
+import os, uuid, ConfigParser
 from Category import *
 
 class HardDrive:
-    """ The Category class """
+    """ The HardDrive class """
 
-    def __init__(self, hdduuid = None, label = "", path = "", catList = []):
+    def __init__(self, hdduuid = None, label = "", path = ""):
         """ 
         Constructor
         ---
@@ -48,8 +48,7 @@ class HardDrive:
         self.__label = label
         self.__path = path
         self.__loaded = False
-        self.__categoryListDirty = True
-        self.__categoryList = catList
+        self.__categoryList = None
 
     # -- Get Properties --
     def GetUuid(self):
@@ -115,18 +114,12 @@ class HardDrive:
 
         return os.path.isdir(self.__path)
 
-    def LoadCategoryList(self, force = False):
+    def LoadCategoryList(self):
         """ 
         Loads the category list from the HDD 
         ---
-        Params:
-            @ force - (Bool) If categories should be loaded even if 
-                      list isn't dirty
         Return: True on success/False on failure
         """
-
-        if not self.__categoryListDirty and not force:
-            return True
 
         hddConfigFolderPath = os.path.join(self.__path, ".mhddorganizer")
         hddCategoryConfigPath = os.path.join(hddConfigFolderPath, "categories.ini")
@@ -143,8 +136,6 @@ class HardDrive:
             cat = Category(category, hddCategoryConfig.get(category, "Path"), self)
             self.__categoryList.append(cat)
 
-        self.__categoryListDirty = False
-
         return True
 
     def SetCategoryList(self, categoryList):
@@ -158,7 +149,6 @@ class HardDrive:
               HDD call SaveCategoryList()
         """
 
-        self.__categoryListDirty = True
         self.__categoryList = categoryList
 
         for category in self.__categoryList:
@@ -170,9 +160,6 @@ class HardDrive:
         ---
         Return: True on success/False on failure
         """
-
-        if not self.__categoryListDirty:
-            return True
 
         if not os.path.isdir(self.__path):
             return False
@@ -203,7 +190,5 @@ class HardDrive:
         hddCategoryConfig.write(configFile)
 
         configFile.close()
-
-        self.__categoryListDirty = False
 
         return True
