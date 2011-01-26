@@ -26,8 +26,9 @@ Copyright (C) 2010 Revolt
 
 import os, uuid, ConfigParser
 from Category import *
+from hddproviders.FileProvider import *
 
-class HardDrive:
+class HardDrive(object):
     """ The HardDrive class """
 
     def __init__(self, hdduuid = None, label = "", path = ""):
@@ -49,6 +50,7 @@ class HardDrive:
         self.__path = path
         self.__loaded = False
         self.__categoryList = None
+        self.__provider = FileProvider(self)
 
     # -- Get Properties --
     def GetUuid(self):
@@ -104,12 +106,21 @@ class HardDrive:
 
         self.__path = path
 
+    def SetProvider(self, provider):
+        """
+        Sets a new HDD provider
+        ---
+            @ provider - The new provider for this HDD
+        """
+        
+        self.__provider = provider
+
     # -- Methods --
     def Connected(self):
         """
         Checks if this HDD is connected by checking if its path exists
         ---
-        Return: True if connected/False otherwise
+        Return: (Boolean) True if connected, False otherwise
         """
 
         return os.path.isdir(self.__path)
@@ -118,77 +129,47 @@ class HardDrive:
         """ 
         Loads the category list from the HDD 
         ---
-        Return: True on success/False on failure
+        Return: (Boolean) True on success, False on failure
         """
 
-        hddConfigFolderPath = os.path.join(self.__path, ".mhddorganizer")
-        hddCategoryConfigPath = os.path.join(hddConfigFolderPath, "categories.ini")
-
-        if not os.path.exists(hddCategoryConfigPath):
-            return False
-
-        self.__categoryList = []
-
-        hddCategoryConfig = ConfigParser.ConfigParser()
-        hddCategoryConfig.read(hddCategoryConfigPath)
-
-        for category in hddCategoryConfig.sections():
-            cat = Category(category, hddCategoryConfig.get(category, "Path"), self)
-            self.__categoryList.append(cat)
-
-        return True
-
-    def SetCategoryList(self, categoryList):
-        """
-        Sets the category list of this HDD to the supplied list of categories
-        ---
-        Params:
-            @ categoryList - A list of Category objects
-        ---
-        Note: The list is only altered in memory. To save the changes to the
-              HDD call SaveCategoryList()
-        """
-
-        self.__categoryList = categoryList
-
-        for category in self.__categoryList:
-            category.SetHdd(self)
+        self.__categoryList = self.__provider.LoadCategoryList()
+        return self.__categoryList is not None
 
     def SaveCategoryList(self):
         """
         Saves the actual virtual category list of this HDD to the actual HDD
         ---
-        Return: True on success/False on failure
+        Return: (Boolean) True on success, False on failure
         """
 
-        if not os.path.isdir(self.__path):
-            return False
+        return self.__provider.SaveCategoryList()
 
-        hddConfigFolderPath = os.path.join(self.__path, ".mhddorganizer")
-        hddCategoryConfigPath = os.path.join(hddConfigFolderPath, "categories.ini")
+    def LoadCategoryMovieList(self, cat):
+        """
+        Loads all movies from the provided category and returns a list containing them.
+        ---
+        Params:
+            @ cat (Category) - The category whose movies we wish to get.
+        ---
+        Return: (List of Movies) The movies contained in the category.
+        """
 
-        if not os.path.isdir(hddConfigFolderPath):
-            os.mkdir(hddConfigFolderPath)
+        return self.__provider.LoadCategoryMovieList(cat)
 
-        configFile = None
+    def LoadMovieInfo(self, movie):
+        """
+        Loads movie info into the specified movie object.
+        ---
+        Return: (Boolean) True on success, False on failure.
+        """
 
-        try:
-            configFile = open(hddCategoryConfigPath, "w")
-        except Exception, e:
-            print "Error opening config"
-            print e.message
-            return False
+        return self.__provider.LoadMovieInfo(movie)
 
-        hddCategoryConfig = ConfigParser.ConfigParser()
+    def SaveMovieInfo(self, movie):
+        """
+        Saves movie info of the specified movie.
+        ---
+        Return: (Boolean) True on success, False on failure.
+        """
 
-        for category in self.__categoryList:
-            if not hddCategoryConfig.has_section(category.GetName()):
-                hddCategoryConfig.add_section(category.GetName())
-
-            hddCategoryConfig.set(category.GetName(), "Path", category.GetRelativePath())
-
-        hddCategoryConfig.write(configFile)
-
-        configFile.close()
-
-        return True
+        return self.__provider.SaveMovieInfo(movie)

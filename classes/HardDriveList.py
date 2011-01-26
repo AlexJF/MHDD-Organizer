@@ -27,7 +27,7 @@ Copyright (C) 2010 Revolt
 import wx, os
 from classes.HardDrive import *
 
-class HardDriveList:
+class HardDriveList(object):
     """ The HardDriveList class """
 
     configSync = False

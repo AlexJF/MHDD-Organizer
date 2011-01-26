@@ -124,7 +124,6 @@ class HddPropDialog(wx.Dialog):
     def PopulateList(self):
         """ Given a list of categories, populates the listview """
 
-        print self.__hardDrive.GetCategoryList()
         for category in self.__hardDrive.GetCategoryList():
             self.AddCategoryListView(category)
 

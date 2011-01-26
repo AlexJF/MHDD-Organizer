@@ -24,7 +24,7 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-class Provider(Provider):
+class Provider(object):
     """ The Provider class """
 
     def __init__(self, hdd):
@@ -38,9 +38,65 @@ class Provider(Provider):
         self.__hdd = hdd
 
     # -- Get Properties --
-    def GetHDD(self):
+    def GetHdd(self):
         """
-        Returns the HDD instance associated with this provider
+        Return: (HardDrive) The Hdd instance associated with this provider
         """
 
         return self.__hdd
+
+    # -- Methods --
+    def LoadCategoryList(self):
+        """
+        Reads the category list of the HDD and returns it.
+        ---
+        Return: (List of Categories) The categories pertaining to the
+                 hdd associated with this provider.
+        """
+
+        raise NotImplementedError()
+
+    def SaveCategoryList(self):
+        """
+        Saves category list of the associated hdd.
+        ---
+        Return: (Boolean) True on success, False otherwise
+        """
+
+        raise NotImplementedError()
+
+    def LoadCategoryMovieList(self, cat):
+        """
+        Loads all movies contained in the provided category.
+        ---
+        Params:
+             @ cat (Category) - The category whose movies we wish to load.
+        ---
+        Return: (List of Movies) List of movies contained in the category.
+        """
+        
+        raise NotImplementedError()
+
+    def LoadMovieInfo(self, movie):
+        """
+        Loads info from a single movie and returns it.
+        ---
+        Params:
+            @ movie (Movie) - The movie whose info we wish to load.
+        ---
+        Return: (Boolean) True on success, False otherwise
+        """
+
+        raise NotImplementedError()
+
+    def SaveMovieInfo(self, movie):
+        """
+        Saves a info from a single movie.
+        ---
+        Params:
+            @ movie (Movie) - The movie to save.
+        ---
+        Return: (Boolean) True on success, False otherwise
+        """
+
+        raise NotImplementedError()

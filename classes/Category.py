@@ -26,10 +26,10 @@ Copyright (C) 2010 Revolt
 import os
 from Movie import *
 
-class Category:
+class Category(object):
     """ The Category class """
 
-    def __init__(self, name, relpath, hdd = None):
+    def __init__(self, name, relpath, hdd):
         """
         Constructor
         ---
@@ -43,6 +43,7 @@ class Category:
         self.__name = name
         self.__relpath = relpath
         self.__hdd = hdd
+        self.__movieList = None
 
     # -- Get Properties --
     def GetName(self):
@@ -105,40 +106,25 @@ class Category:
         Changes the hdd associated with this category
         ---
         Param:
-            @ hdd (HardDrive) - The new harddrive that owns this category
+            @ hdd (HardDrive) - The new harddrive that owns this category.
         """
 
         self.__hdd = hdd
 
     # -- Methods --
-    def GetMovieList(self):
+    def GetMovieList(self, refresh = False):
         """
         Retrieves the list of movies managed by this category
         ---
-        Returns (List of Movies): The list of movies under this
-                                  category.
+        Params:
+            @ refresh (Boolean) - Whether or not to force a refresh of the list.
         ---
-        NOTE: This only works if the category is managed by a HDD
+        Return (List of Movies): The list of movies under this category.
         """
 
-        if not self.GetHdd():
-            return None
+        if self.__movieList is not None and not refresh:
+            return self.__movieList
 
-        objList = []
-        catFullPath = self.GetFullPath()
+        self.__movieList = self.__hdd.LoadCategoryMovieList(self)
 
-        items = os.listdir(catFullPath)
-
-        for item in items:
-            itemFullPath = os.path.join(catFullPath, item)
-            if os.path.isdir(itemFullPath):
-                try:
-                    obj = Movie(itemFullPath)
-
-                    if obj:
-                        objList.append(obj)
-
-                except ValueError as e:
-                    print str(e)
-
-        return objList
+        return self.__movieList

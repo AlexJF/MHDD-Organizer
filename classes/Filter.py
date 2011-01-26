@@ -24,7 +24,7 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-class Filter:
+class Filter(object):
     """ The Filter class """
 
     def Test(self, obj):
