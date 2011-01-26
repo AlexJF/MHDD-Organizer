@@ -24,7 +24,7 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os, uuid, ConfigParser
+import os, uuid, ConfigParser, logging
 from Category import *
 from hddproviders.FileProvider import *
 
@@ -45,12 +45,15 @@ class HardDrive(object):
         if not hdduuid:
             hdduuid = str(uuid.uuid4())
 
+        self.__logger = logging.getLogger("main")
         self.__uuid = hdduuid 
         self.__label = label
         self.__path = path
         self.__loaded = False
         self.__categoryList = None
         self.__provider = FileProvider(self)
+
+        self.__logger.debug("Initialized new Harddrive: %s - %s - %s", hdduuid, label, path)
 
     # -- Get Properties --
     def GetUuid(self):
@@ -133,7 +136,11 @@ class HardDrive(object):
         """
 
         self.__categoryList = self.__provider.LoadCategoryList()
-        return self.__categoryList is not None
+
+        if self.__categoryList is None:
+            return False
+        else:
+            return True
 
     def SaveCategoryList(self):
         """

@@ -25,7 +25,7 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os, ConfigParser
+import os, ConfigParser, logging
 from datetime import datetime
 from classes.Provider import *
 from classes.Category import *
@@ -43,6 +43,8 @@ class FileProvider(Provider):
         """
 
         super(FileProvider, self).__init__(hdd)
+        self.__logger = logging.getLogger("main")
+
 
     # -- Methods --
     def LoadCategoryList(self):
@@ -58,6 +60,7 @@ class FileProvider(Provider):
         hddCategoryConfigPath = os.path.join(hddConfigFolderPath, "categories.ini")
 
         if not os.path.exists(hddCategoryConfigPath):
+            self.__logger.debug("Didn't find categories in the HDD (%s)", self.GetHdd().GetUuid())
             return None
 
         categoryList = []
@@ -68,6 +71,8 @@ class FileProvider(Provider):
         for category in hddCategoryConfig.sections():
             cat = Category(category, hddCategoryConfig.get(category, "Path"), harddrive)
             categoryList.append(cat)
+
+        self.__logger.debug("Loaded %d categories from the HDD (%s)", len(categoryList), self.GetHdd().GetUuid())
 
         return categoryList
 
@@ -81,13 +86,12 @@ class FileProvider(Provider):
 
         harddrive = self.GetHdd()
         harddrivePath = harddrive.GetPath()
-        if not os.path.isdir(harddrivePath()):
-            return False
 
         hddConfigFolderPath = os.path.join(harddrivePath, ".mhddorganizer")
         hddCategoryConfigPath = os.path.join(hddConfigFolderPath, "categories.ini")
 
         if not os.path.isdir(hddConfigFolderPath):
+            self.__logger.debug("Created config folder in HDD (%s)", self.GetHdd().GetUuid())
             os.mkdir(hddConfigFolderPath)
 
         configFile = None
@@ -95,8 +99,7 @@ class FileProvider(Provider):
         try:
             configFile = open(hddCategoryConfigPath, "w")
         except Exception, e:
-            print "Error opening config"
-            print e.message
+            self.__logger.exception("Error while opening categories.ini in HDD (%s)", self.GetHdd().GetUuid())
             return False
 
         hddCategoryConfig = ConfigParser.ConfigParser()
@@ -111,6 +114,9 @@ class FileProvider(Provider):
 
         configFile.close()
 
+        self.__logger.debug("Successfully wrote %d categories to the HDD (%s)", len(self.__categoryList),
+                            self.GetHdd().GetUuid())
+
         return True
 
     def LoadCategoryMovieList(self, cat):
@@ -124,7 +130,10 @@ class FileProvider(Provider):
         Return: (List of Movies) The movies contained in the category.
         """
 
+        self.__logger.debug("Loading movie list from category '%s'", cat.GetName())
+
         if cat.GetHdd() != self.GetHdd():
+            self.__logger.error("Category doesn't belong to the HDD associated with this provider")
             return None
 
         movieList = []
@@ -137,16 +146,20 @@ class FileProvider(Provider):
             itemFullPath = os.path.join(catFullPath, item)
             if os.path.isdir(itemFullPath):
                 movie = None
+                self.__logger.debug("Reading directory: %s", itemFullPath)
 
                 for f in os.listdir(itemFullPath):
                     name, extension = os.path.splitext(f)
                     extension = extension[1:].lower()
                     if extension in movieExtensions:
+                        self.__logger.debug("Found a movie in the directory: %s", f)
                         movie = Movie(cat, item, item)
                         break
 
                 if movie is not None:
                     movieList.append(movie)
+
+        self.__logger.debug("Loaded %d movies from category '%s'", len(movieList), cat.GetName())
 
         return movieList
 
@@ -160,12 +173,15 @@ class FileProvider(Provider):
         Return: (Boolean) True if successful, False otherwise.
         """
 
+        self.__logger.debug("Loading movie '%s' info", movie.GetName()) 
+
         moviePath = movie.GetFullPath()
 
         infoFolderPath = os.path.join(moviePath, ".mhddorganizer")
         infoFilePath = os.path.join(infoFolderPath, "info.ini")
 
         if not os.path.exists(infoFilePath):
+            self.__logger.debug("Movie doesn't have info in the HDD")
             return False
 
         movieInfoParser = ConfigParser.ConfigParser()
@@ -207,6 +223,8 @@ class FileProvider(Provider):
             @ movie (Movie) - The movie to save.
         """
 
+        self.__logger.debug("Saving movie '%s' info", movie.GetName()) 
+
         moviePath = movie.GetFullPath()
 
         infoFolderPath = os.path.join(moviePath, ".mhddorganizer")
@@ -216,8 +234,7 @@ class FileProvider(Provider):
             try:
                 os.mkdir(infoFolderPath)
             except OSError, e:
-                print "Error creating movie data folder."
-                print e.message
+                self.__logger.exception("Error creating movie data folder")
                 return False
 
         configFile = None
@@ -225,8 +242,7 @@ class FileProvider(Provider):
         try:
             configFile = open(infoFilePath, "w")
         except Exception, e:
-            print "Error opening config"
-            print e.message
+            self.__logger.exception("Error opening info file for writing")
             return False
 
         movieInfoParser = ConfigParser.ConfigParser()

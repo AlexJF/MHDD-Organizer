@@ -24,14 +24,23 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import wx, os, sys
+import wx, os, sys, logging
 from gui.MainFrame import *
 
 class MainApp(wx.App):
     """ Our main application class """
 
+    __logger = logging.getLogger("main")
+
     def OnInit(self):
         """ What to do on application load """
+
+        self.__logger.setLevel(logging.DEBUG)
+        h1 = logging.StreamHandler()
+        h1.setLevel(logging.DEBUG)
+        f = logging.Formatter("%(levelname)s %(asctime)s %(funcName)s %(message)s")
+        h1.setFormatter(f)
+        self.__logger.addHandler(h1)
 
         self.SetAppName("MHDD Organizer")
         self.SetClassName("MHDDOrganizer")
