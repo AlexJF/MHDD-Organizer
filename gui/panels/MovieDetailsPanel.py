@@ -142,7 +142,7 @@ class MovieDetailsPanel(wx.Panel):
         self.__movie.SetDirectors(self.txtDirectors.GetValue().split(", "))
         self.__movie.SetActors(self.txtActors.GetValue().split(", "))
 
-        self.__movie.SaveInfoToConfig()
+        self.__movie.SaveInfoToHdd()
 
 
     # -- EVENTS --

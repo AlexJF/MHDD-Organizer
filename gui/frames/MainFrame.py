@@ -26,14 +26,17 @@ Copyright (C) 2010 Revolt
 
 
 import wx, os
-from MovieDetailsPanel import *
-from HddSelector.HddSelectorDialog import *
+from gui.panels.MovieDetailsPanel import *
+from gui.dialogs.HddSelectorDialog import *
+from gui.dialogs.IMDBSearchDialog import *
 from classes.filters.FilterName import *
 
 # --------------------- Main frame Class -----------------------
 
 class MainFrame(wx.Frame):
     """ The main frame of the application """
+
+    ID_IMDB = 100
 
     def __init__(self, parent, title):
         """ Constructor """
@@ -55,14 +58,9 @@ class MainFrame(wx.Frame):
         self.mnuMain.AppendSeparator()
         self.mnuMain.Append(wx.ID_EXIT, "Exit")
 
-        self.mnuView = wx.Menu()
-        self.mnuView.AppendCheckItem(wx.ID_VIEW_LIST, "View as List")
-        self.mnuView.AppendCheckItem(wx.ID_VIEW_SMALLICONS, "View as Icons")
-        self.mnuView.AppendCheckItem(wx.ID_VIEW_SORTNAME, "Sort by Name")
-        self.mnuView.AppendCheckItem(wx.ID_VIEW_SORTDATE, "Sort by Date")
-        self.mnuView.AppendCheckItem(wx.ID_VIEW_SORTSIZE, "Sort by Size")
-
         self.mnuTools = wx.Menu()
+        self.mnuTools.Append(self.ID_IMDB, "IMDB Provider")
+        self.mnuTools.AppendSeparator()
         self.mnuTools.Append(wx.ID_PREFERENCES, "Preferences")
 
         self.mnuHelp = wx.Menu()
@@ -71,7 +69,6 @@ class MainFrame(wx.Frame):
         self.mnuHelp.Append(wx.ID_ABOUT, "About")
 
         self.mnbMain.Append(self.mnuMain, "&Main")
-        self.mnbMain.Append(self.mnuView, "&View")
         self.mnbMain.Append(self.mnuTools, "&Tools")
         self.mnbMain.Append(self.mnuHelp, "&Help")
 
@@ -122,6 +119,7 @@ class MainFrame(wx.Frame):
 
         # -- Event Binding -- 
         self.Bind(wx.EVT_MENU, self.OnMenuSelectHardDrive, id = wx.ID_OPEN)
+        self.Bind(wx.EVT_MENU, self.OnMenuSelectIMDB, id = self.ID_IMDB)
 
         self.txtSearch.Bind(wx.EVT_TEXT_ENTER, self.OnMovieSearch)
         self.cmbCat.Bind(wx.EVT_COMBOBOX, self.OnCatChanged)
@@ -203,6 +201,18 @@ class MainFrame(wx.Frame):
 
         self.SelectHDD()
 
+    def OnMenuSelectIMDB(self, event):
+        """
+        This method is called when the user clicks on the IMDB Provider menu entry.
+        """
+
+        dlgIMDBResults = IMDBSearchDialog(self, self.__movieList)
+
+        if dlgIMDBResults.ShowModal() == wx.ID_OK:
+            for movie in self.__movieList:
+                movie.LoadInfoFromIMDB()
+                movie.SaveInfoToHdd()
+
     def OnCatChanged(self, event):
         """ 
         This method is called when a user selects a new category in the combobox 
@@ -248,3 +258,4 @@ class MainFrame(wx.Frame):
             nameFilter = FilterName(searchString)
 
         self.PopulateMovieList(nameFilter)
+

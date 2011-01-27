@@ -25,7 +25,7 @@ Copyright (C) 2010 Revolt
 """
 
 import wx, os, sys, logging
-from gui.MainFrame import *
+from gui.frames.MainFrame import *
 
 class MainApp(wx.App):
     """ Our main application class """

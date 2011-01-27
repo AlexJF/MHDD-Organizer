@@ -25,7 +25,7 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os, ConfigParser, logging
+import os, ConfigParser, logging, time
 from datetime import datetime
 from classes.Provider import *
 from classes.Category import *
@@ -184,34 +184,38 @@ class FileProvider(Provider):
             self.__logger.debug("Movie doesn't have info in the HDD")
             return False
 
-        movieInfoParser = ConfigParser.ConfigParser()
-        movieInfoParser.read(infoFilePath)
+        try:
+            movieInfoParser = ConfigParser.ConfigParser()
+            movieInfoParser.read(infoFilePath)
 
-        infoEntries = movieInfoParser.items("info")
-        separator = "||"
+            infoEntries = movieInfoParser.items("info")
+            separator = "||"
 
-        for entry in infoEntries:
-            name, value = entry
+            for entry in infoEntries:
+                name, value = entry
 
-            if name == "moddate":
-                movie.SetModificationDate(datetime.fromtimestamp(long(value)))
-            elif name == "title":
-                movie.SetTitle(value)
-            elif name == "imdb":
-                movie.SetIMDBID(value)
-            elif name == "year":
-                movie.SetYear(value)
-            elif name == "rating":
-                value = int(value)
-                movie.SetRating(value)
-            elif name == "genres":
-                movie.SetGenres(value.split(separator))
-            elif name == "plot":
-                movie.SetPlot(value)
-            elif name == "directors":
-                movie.SetDirectors(value.split(separator))
-            elif name == "actors":
-                movie.SetActors(value.split(separator))
+                if name == "moddate":
+                    movie.SetModificationDate(datetime.fromtimestamp(float(value)))
+                elif name == "title":
+                    movie.SetTitle(value)
+                elif name == "imdb":
+                    movie.SetIMDBID(value)
+                elif name == "year":
+                    movie.SetYear(value)
+                elif name == "rating":
+                    value = int(value)
+                    movie.SetRating(value)
+                elif name == "genres":
+                    movie.SetGenres(value.split(separator))
+                elif name == "plot":
+                    movie.SetPlot(value)
+                elif name == "directors":
+                    movie.SetDirectors(value.split(separator))
+                elif name == "actors":
+                    movie.SetActors(value.split(separator))
+        except Exception, e:
+            self.__logger.exception("Error reading info file")
+            return False
 
         return True
 
@@ -254,7 +258,7 @@ class FileProvider(Provider):
         separator = "||"
 
         movie.SetModificationDate(datetime.now())
-        movieInfoParser.set(infoSection, "moddate", movie.GetModificationDate())
+        movieInfoParser.set(infoSection, "moddate", time.mktime(movie.GetModificationDate().timetuple()))
         movieInfoParser.set(infoSection, "title", movie.GetTitle())
         movieInfoParser.set(infoSection, "imdb", movie.GetIMDBID())
         movieInfoParser.set(infoSection, "year", movie.GetYear())
