@@ -209,7 +209,19 @@ class MainFrame(wx.Frame):
         dlgIMDBResults = IMDBSearchDialog(self, self.__movieList)
 
         if dlgIMDBResults.ShowModal() == wx.ID_OK:
+            dlgProgress = wx.ProgressDialog("Getting IMDB info...", "Preparing IMDB Loading.............................", 
+                                        len(self.__movieList), self, wx.PD_AUTO_HIDE | 
+                                        wx.PD_CAN_ABORT)
+
+            i = 1
+
             for movie in self.__movieList:
+                shouldContinue, shouldSkip = dlgProgress.Update(i, "Getting info for '" + movie.GetName() + "'")
+
+                if not shouldContinue:
+                    dlgProgress.Show(False)
+                    return
+
                 movie.LoadInfoFromIMDB()
                 movie.SaveInfoToHdd()
 

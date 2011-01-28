@@ -288,13 +288,16 @@ class Movie(object):
         imdbMovieObj = ia.get_movie(self.__imdbID)
 
         self.__title = imdbMovieObj['title']
-        self.__year = imdbMovieObj['year']
+        self.__year = str(imdbMovieObj['year'])
         self.__rating = float(imdbMovieObj['rating'])
         self.__genres = imdbMovieObj['genres']
         self.__plot = imdbMovieObj['plot'][0]
-        self.__directors = imdbMovieObj['director']
+        
+        self.__directors = []
+        for director in imdbMovieObj['director']:
+            self.__directors.append(director['name'])
+
+        self.__actors = []
         for actor in imdbMovieObj['cast']:
             self.__actors.append(actor['name'])
-
-        return self.SaveInfoToConfig()
 

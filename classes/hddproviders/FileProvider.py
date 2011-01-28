@@ -25,7 +25,7 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os, ConfigParser, logging, time
+import os, ConfigParser, logging, time, codecs
 from datetime import datetime
 from classes.Provider import *
 from classes.Category import *
@@ -244,7 +244,7 @@ class FileProvider(Provider):
         configFile = None
 
         try:
-            configFile = open(infoFilePath, "w")
+            configFile = codecs.open(infoFilePath, encoding='utf-8', mode="w")
         except Exception, e:
             self.__logger.exception("Error opening info file for writing")
             return False

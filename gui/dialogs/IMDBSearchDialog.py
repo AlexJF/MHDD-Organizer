@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 """
 File: IMDBSearchDialog.py
 Author: Revolt
@@ -28,6 +26,7 @@ Copyright (C) 2010 Revolt
 
 import wx, logging
 from imdb import IMDb
+from IMDBSearchResultDialog import *
 
 class IMDBSearchDialog(wx.Dialog):
     """ The IMDBSearchDialog class """
@@ -87,9 +86,10 @@ class IMDBSearchDialog(wx.Dialog):
 
         ia = IMDb()
 
-        dlgProgress = wx.ProgressDialog("Searching IMDB...", "Preparing Search...", 
+        dlgProgress = wx.ProgressDialog("Searching IMDB...", "Preparing Search.......................................", 
                                         len(self.__movieList), self, wx.PD_AUTO_HIDE | 
                                         wx.PD_CAN_ABORT)
+
         i = 1
 
         for movie in self.__movieList:
@@ -155,6 +155,26 @@ class IMDBSearchDialog(wx.Dialog):
         Handles a double click in a list view item.
         """
 
+        selectedIndex = event.GetIndex()
+        movie = self.__movieList[selectedIndex]
+        results = self.__resultCache[selectedIndex]
+        currentResultIndex = self.lstResults.GetItemData(selectedIndex)
+
+        # If there are no results to select, there's no point in showing the dialog
+        if len(results) == 0:
+            return
+
+        dlgSearchResultSelect = IMDBSearchResultDialog(self, movie.GetName(), results, currentResultIndex)
+
+        if dlgSearchResultSelect.ShowModal() == wx.ID_OK:
+            currentResultIndex = dlgSearchResultSelect.GetSelectedIndex()
+
+            selectedResult = results[currentResultIndex]
+
+            self.lstResults.SetItemData(selectedIndex, currentResultIndex)
+            self.lstResults.SetStringItem(selectedIndex, 1, selectedResult['title'])
+            self.lstResults.SetStringItem(selectedIndex, 2, selectedResult.movieID)
+
 
     def OnButtonOkClick(self, event):
         """
@@ -172,6 +192,8 @@ class IMDBSearchDialog(wx.Dialog):
             
             selectedResult = results[selectedResultIndex]
 
-            movie.SetIMDBID(selectedResult['id'])
+            movie.SetIMDBID(selectedResult.movieID)
 
             index += 1
+
+        event.Skip()
