@@ -23,7 +23,7 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os
+import os, urllib
 from datetime import date
 from imdb import IMDb
 
@@ -45,14 +45,15 @@ class Movie(object):
         self.__path = path
         self.__dirty = True
         self.__modDate = date.today()
-        self.__title = ""
-        self.__imdbID = ""
-        self.__year = ""
+        self.__title = u""
+        self.__imdbID = u""
+        self.__year = u""
         self.__rating = 0
         self.__genres = []
-        self.__plot = ""
+        self.__plot = u""
         self.__directors = []
         self.__actors = []
+        self.__image = None
 
         self.LoadInfoFromHdd()
 
@@ -66,7 +67,7 @@ class Movie(object):
 
     def GetRelPath(self):
         """
-        Return: (String) The path to the movie directory relative to the
+        Return: (UString) The path to the movie directory relative to the
                          category path
         """
         
@@ -74,7 +75,7 @@ class Movie(object):
 
     def GetFullPath(self):
         """
-        Return: (String) The full path to the movie directory
+        Return: (UString) The full path to the movie directory
         """
         
         return os.path.join(self.__category.GetFullPath(), self.__path)
@@ -88,21 +89,21 @@ class Movie(object):
 
     def GetTitle(self):
         """
-        Return: (String) The real title of the movie.
+        Return: (UString) The real title of the movie.
         """
 
         return self.__title
 
     def GetIMDBID(self):
         """
-        Return: (String) The id of the imdb entry associated with this movie.
+        Return: (UString) The id of the imdb entry associated with this movie.
         """
 
         return self.__imdbID
 
     def GetYear(self):
         """
-        Return: (String) The year of release of the movie.
+        Return: (UString) The year of release of the movie.
         """
 
         return self.__year
@@ -116,21 +117,21 @@ class Movie(object):
 
     def GetGenres(self):
         """
-        Return: (List of Strings) The genres of the movie.
+        Return: (List of UStrings) The genres of the movie.
         """
 
         return self.__genres
 
     def GetPlot(self):
         """
-        Return: (String) The plot of the movie.
+        Return: (UString) The plot of the movie.
         """
         
         return self.__plot
 
     def GetDirectors(self):
         """
-        Return: (List of Strings) The directors of the movie.
+        Return: (List of UStrings) The directors of the movie.
         """
 
         return self.__directors
@@ -141,6 +142,13 @@ class Movie(object):
         """
 
         return self.__actors
+
+    def GetImage(self):
+        """
+        Return: (Bytes) The image representing this movie.
+        """
+
+        return self.__image
 
     # -- Properties (Set) --
     def SetModificationDate(self, date):
@@ -158,7 +166,7 @@ class Movie(object):
         Sets the title of the movie.
         ---
         Params:
-            @ title (String) - The title of the movie.
+            @ title (UString) - The title of the movie.
         """
 
         self.__dirty = True
@@ -169,7 +177,7 @@ class Movie(object):
         Sets the IMDB id of the movie.
         ---
         Params:
-            @ url (String) - The IMDB id of the movie.
+            @ url (UString) - The IMDB id of the movie.
         """
 
         self.__dirty = True
@@ -180,7 +188,7 @@ class Movie(object):
         Sets the year of release of the movie.
         ---
         Params:
-            @ year (String) - The year of release of the movie.
+            @ year (UString) - The year of release of the movie.
         """
 
         self.__dirty = True
@@ -200,23 +208,23 @@ class Movie(object):
         self.__dirty = True
         self.__rating = rating
 
-    def SetGenres(self, genre):
+    def SetGenres(self, genres):
         """
         Sets the genres of the movie.
         ---
         Params:
-            @ genre (List of Strings) - The genres of the movie.
+            @ genres (List of UStrings) - The genres of the movie.
         """
 
         self.__dirty = True
-        self.__genre = genre
+        self.__genres = genres
 
     def SetPlot(self, plot):
         """
         Sets the plot of the movie.
         ---
         Params:
-            @ plot (String) - The plot of the movie.
+            @ plot (UString) - The plot of the movie.
         """
         
         self.__dirty = True
@@ -227,7 +235,7 @@ class Movie(object):
         Sets the director of the movie.
         ---
         Params:
-            @ director (List of Strings) - The directors of the movie.
+            @ director (List of UStrings) - The directors of the movie.
         """
 
         self.__dirty = True
@@ -238,11 +246,22 @@ class Movie(object):
         Sets the actors of the movie.
         ---
         Params:
-            @ actors (List of Strings) - The actors of the movie.
+            @ actors (List of UStrings) - The actors of the movie.
         """
 
         self.__dirty = True
-        return self.__actors
+        self.__actors = actors
+
+    def SetImage(self, image):
+        """
+        Sets the image of the movie.
+        ---
+        Params:
+            @ image (Bytes) - Bytes containing image data.
+        """
+
+        self.__dirty = True
+        self.__image = image
 
     # -- Methods --
     def LoadInfoFromHdd(self):
@@ -288,8 +307,8 @@ class Movie(object):
         imdbMovieObj = ia.get_movie(self.__imdbID)
 
         self.__title = imdbMovieObj['title']
-        self.__year = str(imdbMovieObj['year'])
-        self.__rating = float(imdbMovieObj['rating'])
+        self.__year = unicode(imdbMovieObj['year'])
+        self.__rating = int(round(float(imdbMovieObj['rating']), 0))
         self.__genres = imdbMovieObj['genres']
         self.__plot = imdbMovieObj['plot'][0]
         
@@ -300,4 +319,18 @@ class Movie(object):
         self.__actors = []
         for actor in imdbMovieObj['cast']:
             self.__actors.append(actor['name'])
+
+        img = None
+
+        try:
+            img = urllib.urlopen(imdbMovieObj['cover url'])
+            imgData = img.read()
+            self.__image = imgData
+        except IOError, e:
+            pass
+        finally:
+            if img is not None:
+                img.close()
+
+        self.__dirty = True
 

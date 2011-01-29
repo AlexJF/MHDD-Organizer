@@ -25,7 +25,7 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os, ConfigParser, logging, time, codecs
+import os, ConfigParser, logging, time, codecs, sys
 from datetime import datetime
 from classes.Provider import *
 from classes.Category import *
@@ -64,15 +64,24 @@ class FileProvider(Provider):
             return None
 
         categoryList = []
+        hddCategoryConfigFile = None
 
-        hddCategoryConfig = ConfigParser.ConfigParser()
-        hddCategoryConfig.read(hddCategoryConfigPath)
+        try:
+            hddCategoryConfig = ConfigParser.ConfigParser()
+            hddCategoryConfigFile = codecs.open(hddCategoryConfigPath, "r", "utf-8")
+            hddCategoryConfig.readfp(hddCategoryConfigFile)
 
-        for category in hddCategoryConfig.sections():
-            cat = Category(category, hddCategoryConfig.get(category, "Path"), harddrive)
-            categoryList.append(cat)
+            for category in hddCategoryConfig.sections():
+                cat = Category(category, hddCategoryConfig.get(category, "Path"), harddrive)
+                categoryList.append(cat)
 
-        self.__logger.debug("Loaded %d categories from the HDD (%s)", len(categoryList), self.GetHdd().GetUuid())
+            self.__logger.debug("Loaded %d categories from the HDD (%s)", len(categoryList), self.GetHdd().GetUuid())
+        except IOError, e:
+            self.__logger.exception("Error reading HDD category config file")
+            return None
+        finally:
+            if hddCategoryConfigFile is not None:
+                hddCategoryConfigFile.close()
 
         return categoryList
 
@@ -91,14 +100,18 @@ class FileProvider(Provider):
         hddCategoryConfigPath = os.path.join(hddConfigFolderPath, "categories.ini")
 
         if not os.path.isdir(hddConfigFolderPath):
-            self.__logger.debug("Created config folder in HDD (%s)", self.GetHdd().GetUuid())
-            os.mkdir(hddConfigFolderPath)
+            self.__logger.debug("Creating config folder in HDD (%s)", self.GetHdd().GetUuid())
+            try:
+                os.mkdir(hddConfigFolderPath)
+            except OSError, e:
+                self.__logger.exception("Error while creating config folder")
+                return False
 
         configFile = None
 
         try:
-            configFile = open(hddCategoryConfigPath, "w")
-        except Exception, e:
+            configFile = codecs.open(hddCategoryConfigPath, "w", "utf-8")
+        except IOError, e:
             self.__logger.exception("Error while opening categories.ini in HDD (%s)", self.GetHdd().GetUuid())
             return False
 
@@ -184,12 +197,15 @@ class FileProvider(Provider):
             self.__logger.debug("Movie doesn't have info in the HDD")
             return False
 
+        infoFile = None
+
         try:
+            infoFile = codecs.open(infoFilePath, "r", "utf-8")
             movieInfoParser = ConfigParser.ConfigParser()
-            movieInfoParser.read(infoFilePath)
+            movieInfoParser.readfp(infoFile)
 
             infoEntries = movieInfoParser.items("info")
-            separator = "||"
+            separator = u"||"
 
             for entry in infoEntries:
                 name, value = entry
@@ -203,7 +219,7 @@ class FileProvider(Provider):
                 elif name == "year":
                     movie.SetYear(value)
                 elif name == "rating":
-                    value = int(value)
+                    value = int(round(float(value), 0))
                     movie.SetRating(value)
                 elif name == "genres":
                     movie.SetGenres(value.split(separator))
@@ -213,9 +229,15 @@ class FileProvider(Provider):
                     movie.SetDirectors(value.split(separator))
                 elif name == "actors":
                     movie.SetActors(value.split(separator))
-        except Exception, e:
+        except IOError, e:
             self.__logger.exception("Error reading info file")
             return False
+        except ConfigParser.NoSectionError, e:
+            self.__logger.exception("Didn't find info section in info file")
+            return False
+        finally:
+            if infoFile is not None:
+                infoFile.close()
 
         return True
 
@@ -226,6 +248,7 @@ class FileProvider(Provider):
         Params:
             @ movie (Movie) - The movie to save.
         """
+
 
         self.__logger.debug("Saving movie '%s' info", movie.GetName()) 
 
@@ -241,11 +264,11 @@ class FileProvider(Provider):
                 self.__logger.exception("Error creating movie data folder")
                 return False
 
-        configFile = None
+        infoFile = None
 
         try:
-            configFile = codecs.open(infoFilePath, encoding='utf-8', mode="w")
-        except Exception, e:
+            infoFile = open(infoFilePath, "w")
+        except IOError, e:
             self.__logger.exception("Error opening info file for writing")
             return False
 
@@ -255,21 +278,21 @@ class FileProvider(Provider):
         if not movieInfoParser.has_section(infoSection):
             movieInfoParser.add_section(infoSection)
 
-        separator = "||"
+        separator = u"||"
 
         movie.SetModificationDate(datetime.now())
         movieInfoParser.set(infoSection, "moddate", time.mktime(movie.GetModificationDate().timetuple()))
-        movieInfoParser.set(infoSection, "title", movie.GetTitle())
-        movieInfoParser.set(infoSection, "imdb", movie.GetIMDBID())
-        movieInfoParser.set(infoSection, "year", movie.GetYear())
+        movieInfoParser.set(infoSection, "title", movie.GetTitle().encode("utf-8"))
+        movieInfoParser.set(infoSection, "imdb", movie.GetIMDBID().encode("utf-8"))
+        movieInfoParser.set(infoSection, "year", movie.GetYear().encode("utf-8"))
         movieInfoParser.set(infoSection, "rating", movie.GetRating())
-        movieInfoParser.set(infoSection, "genres", separator.join(movie.GetGenres()))
-        movieInfoParser.set(infoSection, "plot", movie.GetPlot())
-        movieInfoParser.set(infoSection, "directors", separator.join(movie.GetDirectors()))
-        movieInfoParser.set(infoSection, "actors", separator.join(movie.GetActors()))
+        movieInfoParser.set(infoSection, "genres", separator.join(movie.GetGenres()).encode("utf-8"))
+        movieInfoParser.set(infoSection, "plot", movie.GetPlot().encode("utf-8"))
+        movieInfoParser.set(infoSection, "directors", separator.join(movie.GetDirectors()).encode("utf-8"))
+        movieInfoParser.set(infoSection, "actors", separator.join(movie.GetActors()).encode("utf-8"))
 
-        movieInfoParser.write(configFile)
+        movieInfoParser.write(infoFile)
 
-        configFile.close()
+        infoFile.close()
 
         return True

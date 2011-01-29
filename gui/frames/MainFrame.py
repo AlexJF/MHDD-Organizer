@@ -206,6 +206,9 @@ class MainFrame(wx.Frame):
         This method is called when the user clicks on the IMDB Provider menu entry.
         """
 
+        if self.__movieList is None or len(self.__movieList) == 0:
+            return
+
         dlgIMDBResults = IMDBSearchDialog(self, self.__movieList)
 
         if dlgIMDBResults.ShowModal() == wx.ID_OK:
@@ -224,6 +227,7 @@ class MainFrame(wx.Frame):
 
                 movie.LoadInfoFromIMDB()
                 movie.SaveInfoToHdd()
+                i += 1
 
     def OnCatChanged(self, event):
         """ 

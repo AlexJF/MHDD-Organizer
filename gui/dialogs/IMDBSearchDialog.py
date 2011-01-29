@@ -192,7 +192,7 @@ class IMDBSearchDialog(wx.Dialog):
             
             selectedResult = results[selectedResultIndex]
 
-            movie.SetIMDBID(selectedResult.movieID)
+            movie.SetIMDBID(selectedResult.movieID.decode("utf-8"))
 
             index += 1
 

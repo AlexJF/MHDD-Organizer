@@ -25,7 +25,7 @@ Copyright (C) 2010 Revolt
 """
 
 
-import wx, os
+import wx, os, io
 
 class MovieDetailsPanel(wx.Panel):
     """ The object details panel class """
@@ -65,7 +65,7 @@ class MovieDetailsPanel(wx.Panel):
         self.szrDateAndRating.Add(self.lblRating, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 3)
         self.szrDateAndRating.Add(self.spnRating, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 3)
 
-        self.lblGenres = wx.StaticText(self, label="Genre:")
+        self.lblGenres = wx.StaticText(self, label="Genres:")
         self.txtGenres = wx.TextCtrl(self, size=(250, -1))
 
         self.lblPlot = wx.StaticText(self, label="Plot:")
@@ -121,11 +121,18 @@ class MovieDetailsPanel(wx.Panel):
         self.txtIMDB.SetValue(movie.GetIMDBID())
         self.txtRelYear.SetValue(movie.GetYear())
         self.spnRating.SetValue(movie.GetRating())
-        separator = ", "
+        separator = u", "
         self.txtGenres.SetValue(separator.join(movie.GetGenres()))
         self.txtPlot.SetValue(movie.GetPlot())
         self.txtDirectors.SetValue(separator.join(movie.GetDirectors()))
         self.txtActors.SetValue(separator.join(movie.GetActors()))
+
+        imageData = movie.GetImage()
+
+        if imageData is not None:
+            imageStream = io.BytesIO(imageData)
+            image = wx.ImageFromStream(imageStream)
+            self.imgCover.SetBitmap(image.ConvertToBitmap())
 
     def UpdateMovie(self):
         """
