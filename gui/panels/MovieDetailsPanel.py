@@ -26,12 +26,18 @@ Copyright (C) 2010 Revolt
 
 
 import wx, os, io
+from gui.controls.ImageViewer import *
+from gui.dialogs.ImageSelectorDialog import *
 
 class MovieDetailsPanel(wx.Panel):
     """ The object details panel class """
 
     def __init__(self, parent):
         """ Constructor """
+
+        # -- Private Variables --
+        self.__defImage = wx.Image("gui/images/video-default.png", wx.BITMAP_TYPE_PNG)
+        self.__currentMovie = None
 
         # -- Panel Initialization --
         wx.Panel.__init__(self, parent)
@@ -43,8 +49,8 @@ class MovieDetailsPanel(wx.Panel):
         self.lblName = wx.StaticText(self, label="Movie Name")
         self.lblName.SetFont(wx.Font(16, 70, 90, 92, False, wx.EmptyString))
 
-        self.pnlImgCover = wx.Panel(self, size=(100, 140), style=wx.SUNKEN_BORDER)
-        self.imgCover = wx.StaticBitmap(self.pnlImgCover, wx.ID_ANY, wx.Bitmap("gui/images/video-default.png", wx.BITMAP_TYPE_PNG), size=(100, 140), style=wx.SIMPLE_BORDER)
+        self.imgCover = ImageViewer(self, wx.ID_ANY, self.__defImage)
+        self.imgCover.SetMinSize((100, 140))
         
         self.lblTitle = wx.StaticText(self, label="Title:")
         self.txtTitle = wx.TextCtrl(self, size=(250, -1))
@@ -68,11 +74,11 @@ class MovieDetailsPanel(wx.Panel):
         self.lblGenres = wx.StaticText(self, label="Genres:")
         self.txtGenres = wx.TextCtrl(self, size=(250, -1))
 
-        self.lblPlot = wx.StaticText(self, label="Plot:")
-        self.txtPlot = wx.TextCtrl(self, style=wx.TE_MULTILINE)
-
         self.lblDirectors = wx.StaticText(self, label="Director:")
         self.txtDirectors = wx.TextCtrl(self)
+
+        self.lblPlot = wx.StaticText(self, label="Plot:")
+        self.txtPlot = wx.TextCtrl(self, style=wx.TE_MULTILINE)
 
         self.lblActors = wx.StaticText(self, label="Actors:")
         self.txtActors = wx.TextCtrl(self, style=wx.TE_MULTILINE)
@@ -82,7 +88,7 @@ class MovieDetailsPanel(wx.Panel):
         self.szrButtons.Add(self.btnSave, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 3)
 
         self.szrGrid.Add(self.lblName, (0, 0), (1, 3), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3)
-        self.szrGrid.Add(self.pnlImgCover, (0, 3), (5, 1), wx.LEFT | wx.ALIGN_CENTER_VERTICAL, 20)
+        self.szrGrid.Add(self.imgCover, (0, 3), (6, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 20)
         self.szrGrid.Add(self.lblTitle, (1, 0), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3) 
         self.szrGrid.Add(self.txtTitle, (1, 1), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
         self.szrGrid.Add(self.lblIMDB, (2, 0), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3) 
@@ -91,23 +97,25 @@ class MovieDetailsPanel(wx.Panel):
         self.szrGrid.Add(self.szrDateAndRating, (3, 0), (1, 3), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3)
         self.szrGrid.Add(self.lblGenres, (4, 0), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3) 
         self.szrGrid.Add(self.txtGenres, (4, 1), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
-        self.szrGrid.Add(self.lblPlot, (5, 0), (1, 2), wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_VERTICAL, 3) 
-        self.szrGrid.Add(self.txtPlot, (6, 0), (1, 4), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
-        self.szrGrid.Add(self.lblDirectors, (7, 0), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3) 
-        self.szrGrid.Add(self.txtDirectors, (8, 0), (1, 4), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
-        self.szrGrid.Add(self.lblActors, (9, 0), (1, 1), wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_VERTICAL, 3) 
-        self.szrGrid.Add(self.txtActors, (10, 0), (1, 4), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
-        self.szrGrid.Add(self.szrButtons, (11, 0), (1, 4), wx.ALL | wx.ALIGN_CENTER, 3)
+        self.szrGrid.Add(self.lblDirectors, (5, 0), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3) 
+        self.szrGrid.Add(self.txtDirectors, (5, 1), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
+        self.szrGrid.Add(self.lblPlot, (6, 0), (1, 2), wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_VERTICAL, 3) 
+        self.szrGrid.Add(self.txtPlot, (7, 0), (1, 4), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
+        self.szrGrid.Add(self.lblActors, (8, 0), (1, 1), wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_VERTICAL, 3) 
+        self.szrGrid.Add(self.txtActors, (9, 0), (1, 4), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
+        self.szrGrid.Add(self.szrButtons, (10, 0), (1, 4), wx.ALL | wx.ALIGN_CENTER, 3)
 
         self.szrGrid.AddGrowableCol(1)
-        self.szrGrid.AddGrowableRow(6)
-        self.szrGrid.AddGrowableRow(10)
+        self.szrGrid.AddGrowableRow(7)
+        self.szrGrid.AddGrowableRow(9)
 
         self.szrBase.Add(self.szrGrid, 1, wx.ALL | wx.EXPAND, 0)
         self.SetSizer(self.szrBase)
         self.Layout()
 
+        # -- Event Binding --
         self.btnSave.Bind(wx.EVT_BUTTON, self.OnSave)
+        self.imgCover.Bind(wx.EVT_LEFT_UP, self.OnImageClick)
 
     # -- METHODS --
     def SetMovie(self, movie):
@@ -115,7 +123,7 @@ class MovieDetailsPanel(wx.Panel):
         Given a movie, loads its info into the respective fields on the panel.
         """
 
-        self.__movie = movie
+        self.__currentMovie = movie
         self.lblName.SetLabel(movie.GetName())
         self.txtTitle.SetValue(movie.GetTitle())
         self.txtIMDB.SetValue(movie.GetIMDBID())
@@ -127,12 +135,14 @@ class MovieDetailsPanel(wx.Panel):
         self.txtDirectors.SetValue(separator.join(movie.GetDirectors()))
         self.txtActors.SetValue(separator.join(movie.GetActors()))
 
-        imageData = movie.GetImage()
+        imageData = movie.GetImageData()
 
         if imageData is not None:
             imageStream = io.BytesIO(imageData)
             image = wx.ImageFromStream(imageStream)
-            self.imgCover.SetBitmap(image.ConvertToBitmap())
+            self.imgCover.SetImage(image)
+        else:
+            self.imgCover.SetImage(self.__defImage)
 
     def UpdateMovie(self):
         """
@@ -140,22 +150,37 @@ class MovieDetailsPanel(wx.Panel):
         fields and writes that data back to disk.
         """
 
-        self.__movie.SetTitle(self.txtTitle.GetValue())
-        self.__movie.SetIMDBID(self.txtIMDB.GetValue())
-        self.__movie.SetYear(self.txtRelYear.GetValue())
-        self.__movie.SetRating(self.spnRating.GetValue())
-        self.__movie.SetGenres(self.txtGenres.GetValue().split(", "))
-        self.__movie.SetPlot(self.txtPlot.GetValue())
-        self.__movie.SetDirectors(self.txtDirectors.GetValue().split(", "))
-        self.__movie.SetActors(self.txtActors.GetValue().split(", "))
+        self.__currentMovie.SetTitle(self.txtTitle.GetValue())
+        self.__currentMovie.SetIMDBID(self.txtIMDB.GetValue())
+        self.__currentMovie.SetYear(self.txtRelYear.GetValue())
+        self.__currentMovie.SetRating(self.spnRating.GetValue())
+        self.__currentMovie.SetGenres(self.txtGenres.GetValue().split(", "))
+        self.__currentMovie.SetPlot(self.txtPlot.GetValue())
+        self.__currentMovie.SetDirectors(self.txtDirectors.GetValue().split(", "))
+        self.__currentMovie.SetActors(self.txtActors.GetValue().split(", "))
 
-        self.__movie.SaveInfoToHdd()
+        self.__currentMovie.SaveInfoToHdd()
 
 
     # -- EVENTS --
     def OnSave(self, event):
         """
-        Event handler for save button click
+        Event handler for save button click.
         """
 
         self.UpdateMovie()
+
+    def OnImageClick(self, event):
+        """
+        Handles a click on the image.
+        """
+
+        if self.__currentMovie is None:
+            return
+
+        dlgImageSelect = ImageSelectorDialog(self, self.imgCover.GetImage())
+
+        if dlgImageSelect.ShowModal() == wx.ID_OK:
+            selectedImage = dlgImageSelect.GetImage()
+            self.imgCover.SetImage(selectedImage)
+

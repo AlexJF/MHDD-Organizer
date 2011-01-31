@@ -53,7 +53,7 @@ class Movie(object):
         self.__plot = u""
         self.__directors = []
         self.__actors = []
-        self.__image = None
+        self.__imageData = None
 
         self.LoadInfoFromHdd()
 
@@ -143,12 +143,12 @@ class Movie(object):
 
         return self.__actors
 
-    def GetImage(self):
+    def GetImageData(self):
         """
         Return: (Bytes) The image representing this movie.
         """
 
-        return self.__image
+        return self.__imageData
 
     # -- Properties (Set) --
     def SetModificationDate(self, date):
@@ -252,7 +252,7 @@ class Movie(object):
         self.__dirty = True
         self.__actors = actors
 
-    def SetImage(self, image):
+    def SetImageData(self, image):
         """
         Sets the image of the movie.
         ---
@@ -261,7 +261,7 @@ class Movie(object):
         """
 
         self.__dirty = True
-        self.__image = image
+        self.__imageData = image
 
     # -- Methods --
     def LoadInfoFromHdd(self):
@@ -325,7 +325,7 @@ class Movie(object):
         try:
             img = urllib.urlopen(imdbMovieObj['cover url'])
             imgData = img.read()
-            self.__image = imgData
+            self.__imageData = imgData
         except IOError, e:
             pass
         finally:

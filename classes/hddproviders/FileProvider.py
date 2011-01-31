@@ -239,6 +239,19 @@ class FileProvider(Provider):
             if infoFile is not None:
                 infoFile.close()
 
+        imageFilePath = os.path.join(infoFolderPath, "cover.jpg")
+
+        if os.path.exists(imageFilePath):
+            imageFile = None
+
+            try:
+                imageFile = open(imageFilePath, "rb")
+                imageData = imageFile.read()
+                movie.SetImageData(imageData)
+            except IOError, e:
+                self.__logger.exception("Error reading cover image")
+                return False
+
         return True
 
     def SaveMovieInfo(self, movie):
@@ -294,5 +307,21 @@ class FileProvider(Provider):
         movieInfoParser.write(infoFile)
 
         infoFile.close()
+
+        imageData = movie.GetImageData()
+
+        if imageData is not None:
+            imageFilePath = os.path.join(infoFolderPath, "cover.jpg")
+            imageFile = None
+
+            try:
+                imageFile = open(imageFilePath, "wb")
+                imageFile.write(imageData)
+            except IOError, e:
+                self.__logger.exception("Error writing cover image")
+                return False
+            finally:
+                if imageFile is not None:
+                    imageFile.close()
 
         return True

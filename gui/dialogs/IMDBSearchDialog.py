@@ -88,7 +88,7 @@ class IMDBSearchDialog(wx.Dialog):
 
         dlgProgress = wx.ProgressDialog("Searching IMDB...", "Preparing Search.......................................", 
                                         len(self.__movieList), self, wx.PD_AUTO_HIDE | 
-                                        wx.PD_CAN_ABORT)
+                                        wx.PD_CAN_ABORT | wx.PD_APP_MODAL)
 
         i = 1
 
