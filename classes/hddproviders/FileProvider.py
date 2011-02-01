@@ -100,7 +100,8 @@ class FileProvider(Provider):
         hddCategoryConfigPath = os.path.join(hddConfigFolderPath, "categories.ini")
 
         if not os.path.isdir(hddConfigFolderPath):
-            self.__logger.debug("Creating config folder in HDD (%s)", self.GetHdd().GetUuid())
+            self.__logger.debug("Creating config folder in HDD (%s)", 
+                                self.GetHdd().GetUuid())
             try:
                 os.mkdir(hddConfigFolderPath)
             except OSError, e:
@@ -112,12 +113,15 @@ class FileProvider(Provider):
         try:
             configFile = codecs.open(hddCategoryConfigPath, "w", "utf-8")
         except IOError, e:
-            self.__logger.exception("Error while opening categories.ini in HDD (%s)", self.GetHdd().GetUuid())
+            self.__logger.exception("Error while opening categories.ini in HDD (%s)", 
+                                    self.GetHdd().GetUuid())
             return False
 
         hddCategoryConfig = ConfigParser.ConfigParser()
 
-        for category in self.__categoryList:
+        categoryList = self.GetHdd().GetCategoryList()
+
+        for category in categoryList:
             if not hddCategoryConfig.has_section(category.GetName()):
                 hddCategoryConfig.add_section(category.GetName())
 
@@ -127,8 +131,8 @@ class FileProvider(Provider):
 
         configFile.close()
 
-        self.__logger.debug("Successfully wrote %d categories to the HDD (%s)", len(self.__categoryList),
-                            self.GetHdd().GetUuid())
+        self.__logger.debug("Successfully wrote %d categories to the HDD (%s)", 
+                            len(categoryList), self.GetHdd().GetUuid())
 
         return True
 
