@@ -26,6 +26,7 @@ Copyright (C) 2010 Revolt
 
 
 import wx, os
+from operator import methodcaller
 from gui.panels.MovieDetailsPanel import *
 from gui.dialogs.HddSelectorDialog import *
 from gui.dialogs.IMDBSearchDialog import *
@@ -37,6 +38,8 @@ class MainFrame(wx.Frame):
     """ The main frame of the application """
 
     ID_IMDB = 100
+    ID_IMDB_SEARCHNEW = 101
+    ID_IMDB_REFRESH = 102
 
     def __init__(self, parent, title):
         """ Constructor """
@@ -58,8 +61,12 @@ class MainFrame(wx.Frame):
         self.mnuMain.AppendSeparator()
         self.mnuMain.Append(wx.ID_EXIT, "Exit")
 
+        self.mnuIMDB = wx.Menu()
+        self.mnuIMDB.Append(self.ID_IMDB_SEARCHNEW, "Search new movies in IMDB")
+        self.mnuIMDB.Append(self.ID_IMDB_REFRESH, "Refresh existing IMDB data")
+
         self.mnuTools = wx.Menu()
-        self.mnuTools.Append(self.ID_IMDB, "IMDB Provider")
+        imdbMenuItem = self.mnuTools.AppendMenu(self.ID_IMDB, "IMDB", self.mnuIMDB)
         self.mnuTools.AppendSeparator()
         self.mnuTools.Append(wx.ID_PREFERENCES, "Preferences")
 
@@ -75,15 +82,22 @@ class MainFrame(wx.Frame):
         self.SetMenuBar(self.mnbMain)
 
         self.tlbMain = self.CreateToolBar()
-        self.tlbMain.AddTool(wx.ID_ADD, wx.Bitmap("gui/images/add.png", wx.BITMAP_TYPE_PNG), shortHelpString = "Add a new object")
-        self.tlbMain.AddTool(wx.ID_REMOVE, wx.Bitmap("gui/images/rem.png", wx.BITMAP_TYPE_PNG), shortHelpString = "Remove a object")
+        self.tlbMain.SetMargins((5, 5))
+
+        self.tlbMain.AddLabelTool(wx.ID_OPEN, "Select Harddrive...", wx.Bitmap("gui/images/hdd-on.png"))
+
         self.tlbMain.AddSeparator()
 
+        self.lblCat = wx.StaticText(self.tlbMain, wx.ID_ANY, "Category: ")
         self.cmbCat = wx.ComboBox(self.tlbMain, wx.ID_ANY, size = (-1, 23))
+        self.tlbMain.AddControl(self.lblCat)
         self.tlbMain.AddControl(self.cmbCat)
+
         self.tlbMain.AddSeparator()
 
+        self.lblSearch = wx.StaticText(self.tlbMain, wx.ID_ANY, "Search: ")
         self.txtSearch = wx.TextCtrl(self.tlbMain, wx.ID_ANY, size = (150, 23), style = wx.TE_PROCESS_ENTER)
+        self.tlbMain.AddControl(self.lblSearch)
         self.tlbMain.AddControl(self.txtSearch)
 
         self.tlbMain.Realize()
@@ -119,7 +133,9 @@ class MainFrame(wx.Frame):
 
         # -- Event Binding -- 
         self.Bind(wx.EVT_MENU, self.OnMenuSelectHardDrive, id = wx.ID_OPEN)
-        self.Bind(wx.EVT_MENU, self.OnMenuSelectIMDB, id = self.ID_IMDB)
+        self.Bind(wx.EVT_MENU, self.OnMenuSelectIMDBSearch, id = self.ID_IMDB_SEARCHNEW)
+        self.Bind(wx.EVT_MENU, self.OnMenuSelectIMDBRefresh, id = self.ID_IMDB_REFRESH)
+        self.Bind(wx.EVT_MENU, self.OnAbout, id = self.ID_ABOUT)
 
         self.txtSearch.Bind(wx.EVT_TEXT_ENTER, self.OnMovieSearch)
         self.cmbCat.Bind(wx.EVT_COMBOBOX, self.OnCatChanged)
@@ -169,6 +185,7 @@ class MainFrame(wx.Frame):
 
         self.__currentCategory = cat
         self.__movieList = cat.GetMovieList()
+        self.__movieList.sort(key = methodcaller("GetName"))
         self.PopulateMovieList()
 
     def PopulateMovieList(self, condition = None):
@@ -193,6 +210,49 @@ class MainFrame(wx.Frame):
 
             i += 1
 
+    def ShowIMDBDialog(self, movieList):
+        """
+        Shows the IMDB search dialog populated with the provided movie list.
+        ---
+        Params:
+            @ movieList (List of Movies) - The list of movies whose info we wish to get/refresh
+                                           from IMDB.
+        """
+
+        if movieList is None:
+            return
+
+        dlgIMDBResults = IMDBSearchDialog(self, movieList)
+
+        if dlgIMDBResults.ShowModal() == wx.ID_OK:
+            self.RefreshIMDBInfo(movieList)
+
+    def RefreshIMDBInfo(self, movieList):
+        """
+        Refreshes the IMDB info of each movie in the provided Movie list.
+        ---
+        Params:
+            @ movieList (List of Movies) - The list of movies whose info we wish to refresh
+                                           from IMDB.
+        """
+
+        dlgProgress = wx.ProgressDialog("Getting IMDB info...", "Preparing IMDB Loading.............................", 
+                                        len(self.__movieList), self, wx.PD_AUTO_HIDE | 
+                                        wx.PD_CAN_ABORT)
+
+        i = 1
+
+        for movie in movieList:
+            shouldContinue, shouldSkip = dlgProgress.Update(i, "Getting info for '" + movie.GetName() + "'")
+
+            if not shouldContinue:
+                dlgProgress.Show(False)
+                return
+
+            movie.LoadInfoFromIMDB()
+            movie.SaveInfoToHdd()
+            i += 1
+
     # -- EVENTS --
     def OnMenuSelectHardDrive(self, event):
         """
@@ -201,37 +261,26 @@ class MainFrame(wx.Frame):
 
         self.SelectHDD()
 
-    def OnMenuSelectIMDB(self, event):
+    def OnMenuSelectIMDBSearch(self, event):
         """
-        This method is called when the user clicks on the IMDB Provider menu entry.
+        This method is called when the user clicks on the IMDB Search New menu entry.
         """
 
-        if self.__movieList is None or len(self.__movieList) == 0:
-            return
+        imdbFilter = FilterIMDB()
+        noIMDBMovies = imdbFilter.FilterList(False)
 
-        dlgIMDBResults = IMDBSearchDialog(self, self.__movieList)
+        ShowIMDBDialog(noIMDBMovies)
 
-        if dlgIMDBResults.ShowModal() == wx.ID_OK:
-            dlgProgress = wx.ProgressDialog("Getting IMDB info...", "Preparing IMDB Loading.............................", 
-                                        len(self.__movieList), self, wx.PD_AUTO_HIDE | 
-                                        wx.PD_CAN_ABORT)
+    def OnMenuSelectIMDBRefresh(self, event):
+        """
+        This method is called when the user clicks on the IMDB Refresh menu entry.
+        """
 
-            i = 1
-
-            for movie in self.__movieList:
-                shouldContinue, shouldSkip = dlgProgress.Update(i, "Getting info for '" + movie.GetName() + "'")
-
-                if not shouldContinue:
-                    dlgProgress.Show(False)
-                    return
-
-                movie.LoadInfoFromIMDB()
-                movie.SaveInfoToHdd()
-                i += 1
+        self.RefreshIMDBInfo(self.__movieList)
 
     def OnCatChanged(self, event):
         """ 
-        This method is called when a user selects a new category in the combobox 
+        This method is called when a user selects a new category in the combobox.
         """
 
         self.lstMovie.DeleteAllItems()
@@ -274,4 +323,12 @@ class MainFrame(wx.Frame):
             nameFilter = FilterName(searchString)
 
         self.PopulateMovieList(nameFilter)
+
+    def OnAbout(self, event):
+        """
+        This method is called when the user clicks the about button.
+        """
+
+        pass
+
 

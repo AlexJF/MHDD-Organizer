@@ -44,7 +44,7 @@ class Movie(object):
         self.__name = name
         self.__path = path
         self.__dirty = True
-        self.__modDate = date.today()
+        self.__modDate = date.fromtimestamp(0)
         self.__title = u""
         self.__imdbID = u""
         self.__year = u""

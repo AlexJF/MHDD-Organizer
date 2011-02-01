@@ -34,7 +34,28 @@ class Filter(object):
         Params:
             @ obj - The object to test.
         ---
-        Returns: True if the object passed the test, False otherwise.
+        Return: (Boolean) True if the object passed the test, False otherwise.
         """
 
         raise NotImplementedError()
+
+    def FilterList(self, list, positive = True):
+        """
+        Filters the provided list returning the result.
+        Note: Original list isn't modified.
+        ---
+        Params:
+            @ list (List) - The list to filter.
+            @ positive (Boolean) - If condition is positive or negative.
+        ---
+        Return: (List) Filtered list.
+        """
+
+        resultList = []
+
+        if list is not None:
+            for item in list:
+                if self.Test(item) == positive:
+                    resultList.append(item)
+
+        return resultList
