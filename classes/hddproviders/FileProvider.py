@@ -266,7 +266,6 @@ class FileProvider(Provider):
             @ movie (Movie) - The movie to save.
         """
 
-
         self.__logger.debug("Saving movie '%s' info", movie.GetName()) 
 
         moviePath = movie.GetFullPath()

@@ -37,7 +37,8 @@ class Movie(object):
         Params:
             @ cat (Category) - The category containing this movie.
             @ name (String) - The name of this movie object.
-            @ path (String) - The path of this movie object.
+            @ path (String) - The path of this movie object relative to the
+                              category path.
         """
 
         self.__category = cat
@@ -60,12 +61,12 @@ class Movie(object):
     # -- Properties (Get) --
     def GetName(self):
         """
-        Return: (String) The title of the movie.
+        Return: (UString) The title of the movie.
         """
 
         return self.__name
 
-    def GetRelPath(self):
+    def GetRelativePath(self):
         """
         Return: (UString) The path to the movie directory relative to the
                          category path

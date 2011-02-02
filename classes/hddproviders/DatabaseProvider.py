@@ -77,14 +77,15 @@ class DatabaseProvider(Provider):
         dbCursor = self.__dbConn.cursor()
 
         sql = "CREATE TABLE IF NOT EXISTS categories " + 
-              "(id INT, name TEXT, path TEXT);"
+              "(id INT PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, 
+                path TEXT UNIQUE);"
 
         dbCursor.execute(sql)
 
         sql = "CREATE TABLE IF NOT EXISTS movies " +
-              "(id INT, cat INT, name TEXT, title TEXT, " +
-              "imdb TEXT, year TEXT, rating INT, genres TEXT, " +
-              "plot TEXT, directors TEXT, moddate INT);"
+              "(id INT PRIMARY KEY AUTOINCREMENT, cat INT, name TEXT, path TEXT UNIQUE" +
+              "image BLOB, title TEXT, imdb TEXT, year TEXT, rating INT, " +
+              "genres TEXT, plot TEXT, directors TEXT, actors TEXT, moddate INT);"
 
         dbCursor.execute(sql)
 
@@ -146,7 +147,17 @@ class DatabaseProvider(Provider):
         # not present in the DB so INSERT
         insertList = hddCatList
 
-        # TODO
+        for cat in updateList:
+            dbCursor.execute("UPDATE categories SET name = ? WHERE path = ?",
+                             cat.GetName(),
+                             cat.GetPath())
+
+        for cat in deleteList:
+            dbCursor.execute("DELETE FROM categories WHERE path = ?", cat.GetPath())
+
+        for cat in insertList:
+            dbCursor.execute("INSERT INTO categories (id, name, path)
+                              VALUES (, ?, ?)", cat.GetName(), cat.GetPath())
 
         self.__dbConn.commit()
 
@@ -174,31 +185,77 @@ class DatabaseProvider(Provider):
             return None
 
         movieList = []
-        movieExtensions = ["avi", "mpeg", "mpg", "mkv"]
+        separator = u"||"
 
-        catFullPath = cat.GetFullPath()
-        items = os.listdir(catFullPath)
+        dbCursor = self.__dbConn.cursor()
 
-        for item in items:
-            itemFullPath = os.path.join(catFullPath, item)
-            if os.path.isdir(itemFullPath):
-                movie = None
-                self.__logger.debug("Reading directory: %s", itemFullPath)
+        dbCursor.execute("SELECT movies.* FROM movies INNER JOIN categories " + 
+                         "ON categories.id = movies.cat WHERE categories.path = ?"
+                         cat.GetPath())
 
-                for f in os.listdir(itemFullPath):
-                    name, extension = os.path.splitext(f)
-                    extension = extension[1:].lower()
-                    if extension in movieExtensions:
-                        self.__logger.debug("Found a movie in the directory: %s", f)
-                        movie = Movie(cat, item, item)
-                        break
+        for movieData in dbCursor:
+            movie = Movie(cat, movieData['name'], movieData['path'])
+            movie.SetImageData(movieData['image'])
+            movie.SetTitle(movieData['title'])
+            movie.SetIMDBID(movieData['imdb'])
+            movie.SetYear(movieData['year'])
+            movie.SetRating(movieData['rating'])
+            movie.SetGenres(movieData['genres'].split(separator))
+            movie.SetPlot(movieData['plot'])
+            movie.SetDirectors(movieData['directors'].split(separator))
+            movie.SetActors(movieData['actors'].split(separator))
+            movie.SetModificationDate(time.fromtimestamp(movieData['moddate']))
 
-                if movie is not None:
-                    movieList.append(movie)
+            movieList.append(movie)
 
         self.__logger.debug("Loaded %d movies from category '%s'", len(movieList), cat.GetName())
 
         return movieList
+
+    def SaveCategoryMovieList(self, cat):
+        """
+        Saves all movies contained in the provided category.
+        ---
+        Params:
+            @ cat (Category) - The category whose movies we wish to save.
+        """
+
+        self.__logger.debug("Saving all movies inside the provided category '%s'",
+                            cat.GetName())
+
+        existingMovieList = self.LoadCategoryMovieList()
+        newMovieList = cat.GetMovieList()
+        deleteList = []
+
+        found = False
+
+        for existingmovie in existingMovieList:
+            found = False
+
+            for movie in newMovieList:
+                if movie.GetRelativePath() == existingMovie.GetRelativePath():
+                    found = True
+                    break
+
+            if not found:
+                deleteList.append(existingMovie)
+
+        for movie in newMovieList:
+            self.SaveMovieInfo(movie)
+
+        if len(deleteList) > 0:
+            dbCursor = self.__dbConn.cursor()
+
+            dbCursor.execute("SELECT id FROM categories WHERE path = ?", cat.GetRelativePath())
+            result = dbCursor.fetchone()
+
+            catid = result['id']
+
+            for movie in deleteList:
+                dbCursor.execute("DELETE FROM movies WHERE path = ? AND cat = ?", 
+                                 movie.GetRelativePath(), catid)
+
+        return True
 
     def LoadMovieInfo(self, movie):
         """
@@ -212,69 +269,22 @@ class DatabaseProvider(Provider):
 
         self.__logger.debug("Loading movie '%s' info", movie.GetName()) 
 
-        moviePath = movie.GetFullPath()
+        dbCursor = self.__dbConn.cursor()
 
-        infoFolderPath = os.path.join(moviePath, ".mhddorganizer")
-        infoFilePath = os.path.join(infoFolderPath, "info.ini")
+        dbCursor.execute("SELECT * FROM movies WHERE movies.path = ?", movie.GetRelPath())
 
-        if not os.path.exists(infoFilePath):
-            self.__logger.debug("Movie doesn't have info in the HDD")
-            return False
+        movieData = dbCursor.fetchone()
 
-        infoFile = None
-
-        try:
-            infoFile = codecs.open(infoFilePath, "r", "utf-8")
-            movieInfoParser = ConfigParser.ConfigParser()
-            movieInfoParser.readfp(infoFile)
-
-            infoEntries = movieInfoParser.items("info")
-            separator = u"||"
-
-            for entry in infoEntries:
-                name, value = entry
-
-                if name == "moddate":
-                    movie.SetModificationDate(datetime.fromtimestamp(float(value)))
-                elif name == "title":
-                    movie.SetTitle(value)
-                elif name == "imdb":
-                    movie.SetIMDBID(value)
-                elif name == "year":
-                    movie.SetYear(value)
-                elif name == "rating":
-                    value = int(round(float(value), 0))
-                    movie.SetRating(value)
-                elif name == "genres":
-                    movie.SetGenres(value.split(separator))
-                elif name == "plot":
-                    movie.SetPlot(value)
-                elif name == "directors":
-                    movie.SetDirectors(value.split(separator))
-                elif name == "actors":
-                    movie.SetActors(value.split(separator))
-        except IOError, e:
-            self.__logger.exception("Error reading info file")
-            return False
-        except ConfigParser.NoSectionError, e:
-            self.__logger.exception("Didn't find info section in info file")
-            return False
-        finally:
-            if infoFile is not None:
-                infoFile.close()
-
-        imageFilePath = os.path.join(infoFolderPath, "cover.jpg")
-
-        if os.path.exists(imageFilePath):
-            imageFile = None
-
-            try:
-                imageFile = open(imageFilePath, "rb")
-                imageData = imageFile.read()
-                movie.SetImageData(imageData)
-            except IOError, e:
-                self.__logger.exception("Error reading cover image")
-                return False
+        movie.SetImageData(movieData['image'])
+        movie.SetTitle(movieData['title'])
+        movie.SetIMDBID(movieData['imdb'])
+        movie.SetYear(movieData['year'])
+        movie.SetRating(movieData['rating'])
+        movie.SetGenres(movieData['genres'].split(separator))
+        movie.SetPlot(movieData['plot'])
+        movie.SetDirectors(movieData['directors'].split(separator))
+        movie.SetActors(movieData['actors'].split(separator))
+        movie.SetModificationDate(datetime.fromtimestamp(movieData['moddate']))
 
         return True
 
@@ -286,66 +296,47 @@ class DatabaseProvider(Provider):
             @ movie (Movie) - The movie to save.
         """
 
-
         self.__logger.debug("Saving movie '%s' info", movie.GetName()) 
 
-        moviePath = movie.GetFullPath()
+        dbCursor = self.__dbConn.cursor()
 
-        infoFolderPath = os.path.join(moviePath, ".mhddorganizer")
-        infoFilePath = os.path.join(infoFolderPath, "info.ini")
+        dbCursor.execute("SELECT id FROM categories WHERE path = ?",
+                         movie.GetCategory().GetRelativePath())
 
-        if not os.path.isdir(infoFolderPath):
-            try:
-                os.mkdir(infoFolderPath)
-            except OSError, e:
-                self.__logger.exception("Error creating movie data folder")
-                return False
+        result = dbCursor.fetchone()
+        catid = result['id']
 
-        infoFile = None
+        dbCursor.execute("SELECT id FROM movies WHERE cat = ? " +
+                         " AND path = ?", catid, movie.GetRelativePath())
 
-        try:
-            infoFile = open(infoFilePath, "w")
-        except IOError, e:
-            self.__logger.exception("Error opening info file for writing")
-            return False
-
-        movieInfoParser = ConfigParser.ConfigParser()
-        infoSection = "info"
-
-        if not movieInfoParser.has_section(infoSection):
-            movieInfoParser.add_section(infoSection)
+        result = dbCursor.fetchone()
 
         separator = u"||"
 
         movie.SetModificationDate(datetime.now())
-        movieInfoParser.set(infoSection, "moddate", time.mktime(movie.GetModificationDate().timetuple()))
-        movieInfoParser.set(infoSection, "title", movie.GetTitle().encode("utf-8"))
-        movieInfoParser.set(infoSection, "imdb", movie.GetIMDBID().encode("utf-8"))
-        movieInfoParser.set(infoSection, "year", movie.GetYear().encode("utf-8"))
-        movieInfoParser.set(infoSection, "rating", movie.GetRating())
-        movieInfoParser.set(infoSection, "genres", separator.join(movie.GetGenres()).encode("utf-8"))
-        movieInfoParser.set(infoSection, "plot", movie.GetPlot().encode("utf-8"))
-        movieInfoParser.set(infoSection, "directors", separator.join(movie.GetDirectors()).encode("utf-8"))
-        movieInfoParser.set(infoSection, "actors", separator.join(movie.GetActors()).encode("utf-8"))
 
-        movieInfoParser.write(infoFile)
-
-        infoFile.close()
-
-        imageData = movie.GetImageData()
-
-        if imageData is not None:
-            imageFilePath = os.path.join(infoFolderPath, "cover.jpg")
-            imageFile = None
-
-            try:
-                imageFile = open(imageFilePath, "wb")
-                imageFile.write(imageData)
-            except IOError, e:
-                self.__logger.exception("Error writing cover image")
-                return False
-            finally:
-                if imageFile is not None:
-                    imageFile.close()
+        if len(result) == 0:
+            # If the movie we are saving isn't present in the DB, INSERT
+            dbCursor.execute("INSERT INTO movies (id, cat, name, path, image, title, " +
+                             "imdb, year, rating, genres, plot, directors, actors, " +
+                             "modddate) VALUES (, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                             catid, movie.GetName(), movie.GetRelativePath(),
+                             movie.GetImageData(), movie.GetTitle(), movie.GetIMDBID(),
+                             movie.GetYear(), movie.GetRating(), 
+                             separator.join(movie.GetGenres()), movie.GetPlot(),
+                             separator.join(movie.GetDirectors()),
+                             separator.join(movie.GetActors()),
+                             movie.GetModificationDate())
+        else:
+            # Else, if the movie is present in the DB, UPDATE
+            dbCursor.execute("UPDATE movies SET image = ?, title = ?, imdb = ?, " +
+                             "year = ?, rating = ?, genres = ?, plot = ?, directors = ?, " +
+                             "actors = ?, moddate = ? WHERE cat = ? AND path = ?",
+                             movie.GetImageDate(), movie.GetTitle(),
+                             movie.GetIMDBID(), movie.GetYear(), movie.GetRating(),
+                             separator.join(movie.GetGenres()), movie.GetPlot(),
+                             separator.join(movie.GetDirectors()),
+                             separator.join(movie.GetActors()),
+                             movie.GetModificationDate(), catid, movie.GetRelativePath())
 
         return True

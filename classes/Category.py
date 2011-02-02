@@ -91,7 +91,7 @@ class Category(object):
 
         self.__name = name
 
-    def SetRelPath(self, relpath):
+    def SetRelativePath(self, relpath):
         """
         Changes the path of the category relative to the HDD
         ---
