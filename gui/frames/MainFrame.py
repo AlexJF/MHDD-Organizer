@@ -31,6 +31,7 @@ from gui.panels.MovieDetailsPanel import *
 from gui.dialogs.HddSelectorDialog import *
 from gui.dialogs.IMDBSearchDialog import *
 from classes.filters.FilterName import *
+from classes.filters.FilterIMDB import *
 
 # --------------------- Main frame Class -----------------------
 
@@ -84,7 +85,12 @@ class MainFrame(wx.Frame):
         self.tlbMain = self.CreateToolBar()
         self.tlbMain.SetMargins((5, 5))
 
-        self.tlbMain.AddLabelTool(wx.ID_OPEN, "Select Harddrive...", wx.Bitmap("gui/images/hdd-on.png"))
+        self.tlbMain.AddLabelTool(wx.ID_OPEN, "Select Harddrive...", 
+                                  wx.Bitmap("gui/images/hdd-on.png"),
+                                  shortHelp = "Select Harddrive...")
+        self.tlbMain.AddLabelTool(wx.ID_SAVE, "Save All Modifications", 
+                                  wx.Bitmap("gui/images/save.png"),
+                                  shortHelp = "Save All Modifications")
 
         self.tlbMain.AddSeparator()
 
@@ -135,7 +141,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuSelectHardDrive, id = wx.ID_OPEN)
         self.Bind(wx.EVT_MENU, self.OnMenuSelectIMDBSearch, id = self.ID_IMDB_SEARCHNEW)
         self.Bind(wx.EVT_MENU, self.OnMenuSelectIMDBRefresh, id = self.ID_IMDB_REFRESH)
-        self.Bind(wx.EVT_MENU, self.OnAbout, id = self.ID_ABOUT)
+        self.Bind(wx.EVT_MENU, self.OnAbout, id = wx.ID_ABOUT)
 
         self.txtSearch.Bind(wx.EVT_TEXT_ENTER, self.OnMovieSearch)
         self.cmbCat.Bind(wx.EVT_COMBOBOX, self.OnCatChanged)
@@ -219,7 +225,7 @@ class MainFrame(wx.Frame):
                                            from IMDB.
         """
 
-        if movieList is None:
+        if movieList is None or len(movieList) == 0:
             return
 
         dlgIMDBResults = IMDBSearchDialog(self, movieList)
@@ -267,9 +273,9 @@ class MainFrame(wx.Frame):
         """
 
         imdbFilter = FilterIMDB()
-        noIMDBMovies = imdbFilter.FilterList(False)
+        noIMDBMovies = imdbFilter.FilterList(self.__movieList)
 
-        ShowIMDBDialog(noIMDBMovies)
+        self.ShowIMDBDialog(noIMDBMovies)
 
     def OnMenuSelectIMDBRefresh(self, event):
         """

@@ -116,6 +116,7 @@ class MovieDetailsPanel(wx.Panel):
         # -- Event Binding --
         self.btnSave.Bind(wx.EVT_BUTTON, self.OnSave)
         self.imgCover.Bind(wx.EVT_LEFT_UP, self.OnImageClick)
+        self.lnkIMDB.Bind(wx.EVT_HYPERLINK, self.OnLinkClick)
 
     # -- METHODS --
     def SetMovie(self, movie):
@@ -184,3 +185,13 @@ class MovieDetailsPanel(wx.Panel):
             selectedImage = dlgImageSelect.GetImage()
             self.imgCover.SetImage(selectedImage)
 
+    def OnLinkClick(self, event):
+        """
+        Handles a click on the 'Go' link.
+        """
+
+        imdbID = self.txtIMDB.GetValue()
+        
+        if not imdbID.isspace():
+            imdbURL = "http://www.imdb.com/title/tt" + imdbID
+            wx.LaunchDefaultBrowser(imdbURL)
