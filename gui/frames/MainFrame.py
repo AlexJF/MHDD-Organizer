@@ -29,18 +29,18 @@ import wx, os
 from operator import methodcaller
 from gui.panels.MovieDetailsPanel import *
 from gui.dialogs.HddSelectorDialog import *
-from gui.dialogs.IMDBSearchDialog import *
+from gui.dialogs.TMDBSearchDialog import *
 from classes.filters.FilterName import *
-from classes.filters.FilterIMDB import *
+from classes.filters.FilterTMDB import *
 
 # --------------------- Main frame Class -----------------------
 
 class MainFrame(wx.Frame):
     """ The main frame of the application """
 
-    ID_IMDB = 100
-    ID_IMDB_SEARCHNEW = 101
-    ID_IMDB_REFRESH = 102
+    ID_TMDB = 100
+    ID_TMDB_SEARCHNEW = 101
+    ID_TMDB_REFRESH = 102
 
     def __init__(self, parent, title):
         """ Constructor """
@@ -63,12 +63,12 @@ class MainFrame(wx.Frame):
         self.mnuMain.AppendSeparator()
         self.mnuMain.Append(wx.ID_EXIT, "Exit")
 
-        self.mnuIMDB = wx.Menu()
-        self.mnuIMDB.Append(self.ID_IMDB_SEARCHNEW, "Search new movies in IMDB")
-        self.mnuIMDB.Append(self.ID_IMDB_REFRESH, "Refresh existing IMDB data")
+        self.mnuTMDB = wx.Menu()
+        self.mnuTMDB.Append(self.ID_TMDB_SEARCHNEW, "Search new movies in TMDB")
+        self.mnuTMDB.Append(self.ID_TMDB_REFRESH, "Refresh existing TMDB data")
 
         self.mnuTools = wx.Menu()
-        imdbMenuItem = self.mnuTools.AppendMenu(self.ID_IMDB, "IMDB", self.mnuIMDB)
+        imdbMenuItem = self.mnuTools.AppendMenu(self.ID_TMDB, "TMDB", self.mnuTMDB)
         self.mnuTools.AppendSeparator()
         self.mnuTools.Append(wx.ID_PREFERENCES, "Preferences")
 
@@ -140,8 +140,8 @@ class MainFrame(wx.Frame):
 
         # -- Event Binding -- 
         self.Bind(wx.EVT_MENU, self.OnMenuSelectHardDrive, id = wx.ID_OPEN)
-        self.Bind(wx.EVT_MENU, self.OnMenuSelectIMDBSearch, id = self.ID_IMDB_SEARCHNEW)
-        self.Bind(wx.EVT_MENU, self.OnMenuSelectIMDBRefresh, id = self.ID_IMDB_REFRESH)
+        self.Bind(wx.EVT_MENU, self.OnMenuSelectTMDBSearch, id = self.ID_TMDB_SEARCHNEW)
+        self.Bind(wx.EVT_MENU, self.OnMenuSelectTMDBRefresh, id = self.ID_TMDB_REFRESH)
         self.Bind(wx.EVT_MENU, self.OnAbout, id = wx.ID_ABOUT)
 
         self.txtSearch.Bind(wx.EVT_TEXT_ENTER, self.OnMovieSearch)
@@ -225,33 +225,33 @@ class MainFrame(wx.Frame):
 
             i += 1
 
-    def ShowIMDBDialog(self, movieList):
+    def ShowTMDBDialog(self, movieList):
         """
-        Shows the IMDB search dialog populated with the provided movie list.
+        Shows the TMDB search dialog populated with the provided movie list.
         ---
         Params:
             @ movieList (List of Movies) - The list of movies whose info we wish to get/refresh
-                                           from IMDB.
+                                           from TMDB.
         """
 
         if movieList is None or len(movieList) == 0:
             return
 
-        dlgIMDBResults = IMDBSearchDialog(self, movieList)
+        dlgTMDBResults = TMDBSearchDialog(self, movieList)
 
-        if dlgIMDBResults.ShowModal() == wx.ID_OK:
-            self.RefreshIMDBInfo(movieList)
+        if dlgTMDBResults.ShowModal() == wx.ID_OK:
+            self.RefreshTMDBInfo(movieList)
 
-    def RefreshIMDBInfo(self, movieList):
+    def RefreshTMDBInfo(self, movieList):
         """
-        Refreshes the IMDB info of each movie in the provided Movie list.
+        Refreshes the TMDB info of each movie in the provided Movie list.
         ---
         Params:
             @ movieList (List of Movies) - The list of movies whose info we wish to refresh
-                                           from IMDB.
+                                           from TMDB.
         """
 
-        dlgProgress = wx.ProgressDialog("Getting IMDB info...", "Preparing IMDB Loading.............................", 
+        dlgProgress = wx.ProgressDialog("Getting TMDB info...", "Preparing TMDB Loading.............................", 
                                         len(movieList), self, wx.PD_AUTO_HIDE | 
                                         wx.PD_CAN_ABORT)
 
@@ -264,7 +264,7 @@ class MainFrame(wx.Frame):
                 dlgProgress.Show(False)
                 return
 
-            movie.LoadInfoFromIMDB()
+            movie.LoadInfoFromTMDB()
             movie.SaveInfoToHdd()
 
             if movie == self.__selectedMovie:
@@ -280,22 +280,22 @@ class MainFrame(wx.Frame):
 
         self.SelectHDD()
 
-    def OnMenuSelectIMDBSearch(self, event):
+    def OnMenuSelectTMDBSearch(self, event):
         """
-        This method is called when the user clicks on the IMDB Search New menu entry.
-        """
-
-        imdbFilter = FilterIMDB()
-        noIMDBMovies = imdbFilter.FilterList(self.__movieList)
-
-        self.ShowIMDBDialog(noIMDBMovies)
-
-    def OnMenuSelectIMDBRefresh(self, event):
-        """
-        This method is called when the user clicks on the IMDB Refresh menu entry.
+        This method is called when the user clicks on the TMDB Search New menu entry.
         """
 
-        self.RefreshIMDBInfo(self.__movieList)
+        tmdbFilter = FilterTMDB()
+        noTMDBMovies = tmdbFilter.FilterList(self.__movieList)
+
+        self.ShowTMDBDialog(noTMDBMovies)
+
+    def OnMenuSelectTMDBRefresh(self, event):
+        """
+        This method is called when the user clicks on the TMDB Refresh menu entry.
+        """
+
+        self.RefreshTMDBInfo(self.__movieList)
 
     def OnCatChanged(self, event):
         """ 

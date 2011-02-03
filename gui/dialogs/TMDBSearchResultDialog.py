@@ -1,11 +1,11 @@
 """
-File: IMDBSearchResultDialog.py
+File: TMDBSearchResultDialog.py
 Author: Revolt
 --------------------------
 Desc:
     This file contains the definition and implementation of the dialog
-    that allows the user to choose which IMDB title from the results
-    gathered in the IMDB search matches the selected movie object.
+    that allows the user to choose which TMDB title from the results
+    gathered in the TMDB search matches the selected movie object.
 --------------------------
 Copyright (C) 2010 Revolt 
 
@@ -27,18 +27,18 @@ Copyright (C) 2010 Revolt
 import wx, logging
 from imdb import IMDb
 
-class IMDBSearchResultDialog(wx.Dialog):
-    """ The IMDBSearchResultDialog class """
+class TMDBSearchResultDialog(wx.Dialog):
+    """ The TMDBSearchResultDialog class """
 
     def __init__(self, parent, movieName, resultList, selectedIndex = -1):
         """
         Constructor 
         ---
         Params:
-            @ movieName (String) - The name of the movie whose IMDB title
+            @ movieName (String) - The name of the movie whose TMDB title
                                    we wish to select.
             @ resultList (List of Strings) - The list of results retrieved
-                                   from the IMDB search.
+                                   from the TMDB search.
             @ selectedIndex (int) - The index of the result corrently
                                     associated with the movie.
         """
@@ -83,8 +83,8 @@ class IMDBSearchResultDialog(wx.Dialog):
         """
 
         for result in self.__resultList:
-            index = self.lstTitles.InsertStringItem(self.lstTitles.GetItemCount(), result['title'])
-            self.lstTitles.SetStringItem(index, 1, result.movieID)
+            index = self.lstTitles.InsertStringItem(self.lstTitles.GetItemCount(), result['name'])
+            self.lstTitles.SetStringItem(index, 1, result['id'])
 
             if index == self.__selectedIndex:
                 self.lstTitles.Select(index)

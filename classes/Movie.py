@@ -101,12 +101,12 @@ class Movie(object):
 
         return self.__title
 
-    def GetIMDBID(self):
+    def GetTMDBID(self):
         """
-        Return: (UString) The id of the imdb entry associated with this movie.
+        Return: (UString) The id of the tmdb entry associated with this movie.
         """
 
-        return self.__imdbID
+        return self.__tmdbID
 
     def GetYear(self):
         """
@@ -186,16 +186,16 @@ class Movie(object):
         self.__dirty = True
         self.__title = title
 
-    def SetIMDBID(self, id):
+    def SetTMDBID(self, id):
         """
-        Sets the IMDB id of the movie.
+        Sets the TMDB id of the movie.
         ---
         Params:
-            @ url (UString) - The IMDB id of the movie.
+            @ url (UString) - The TMDB id of the movie.
         """
 
         self.__dirty = True
-        self.__imdbID = id
+        self.__tmdbID = id
 
     def SetYear(self, year):
         """
@@ -429,13 +429,13 @@ class Movie(object):
         except tmdb.TmdNoResults, e:
             return
 
-        print movieInfo
+        print movieInfo.keys()
 
         self.__dirty = True
 
 setMethodsDict = dict()
 setMethodsDict['title'] = Movie.SetTitle
-setMethodsDict['imdb'] = Movie.SetIMDBID
+setMethodsDict['tmdb'] = Movie.SetTMDBID
 setMethodsDict['year'] = Movie.SetYear
 setMethodsDict['rating'] = Movie.SetRating
 setMethodsDict['plot'] = Movie.SetPlot
@@ -447,7 +447,7 @@ setMethodsDict['moddate'] = Movie.SetModificationDate
 
 getMethodsDict = dict()
 getMethodsDict['title'] = Movie.GetTitle
-getMethodsDict['imdb'] = Movie.GetIMDBID
+getMethodsDict['tmdb'] = Movie.GetTMDBID
 getMethodsDict['year'] = Movie.GetYear
 getMethodsDict['rating'] = Movie.GetRating
 getMethodsDict['plot'] = Movie.GetPlot

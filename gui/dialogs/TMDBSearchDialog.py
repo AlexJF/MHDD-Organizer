@@ -1,11 +1,11 @@
 """
-File: IMDBSearchDialog.py
+File: TMDBSearchDialog.py
 Author: Revolt
 --------------------------
 Desc:
     This file contains the definition and implementation of the dialog
     that allows the user to choose the correct title from a collection
-    of titles retrieved from IMDB.
+    of titles retrieved from TMDB.
 --------------------------
 Copyright (C) 2010 Revolt 
 
@@ -25,11 +25,11 @@ Copyright (C) 2010 Revolt
 
 
 import wx, logging
-from imdb import IMDb
-from IMDBSearchResultDialog import *
+from classes.infoproviders.tmdb import tmdb
+from TMDBSearchResultDialog import *
 
-class IMDBSearchDialog(wx.Dialog):
-    """ The IMDBSearchDialog class """
+class TMDBSearchDialog(wx.Dialog):
+    """ The TMDBSearchDialog class """
 
     def __init__(self, parent, movieList):
         """
@@ -37,7 +37,7 @@ class IMDBSearchDialog(wx.Dialog):
         ---
         Params:
             @ movieList (List of Movies) - The list of movies that we
-                        wish to choose IMDB titles for.
+                        wish to choose TMDB titles for.
         """
 
         # -- Private Variables Initialization --
@@ -46,7 +46,7 @@ class IMDBSearchDialog(wx.Dialog):
         self.__resultCache = []
 
         # -- Panel Initialization --
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, "IMDB Search Results")
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, "TMDB Search Results")
 
         # -- Control Initialization --
         self.szrBaseVert = wx.BoxSizer(wx.VERTICAL)
@@ -79,16 +79,18 @@ class IMDBSearchDialog(wx.Dialog):
 
     def PopulateList(self):
         """ 
-        Searches IMDB for all movies in the movie list.
+        Searches TMDB for all movies in the movie list.
         """
 
-        self.__logger.debug("Started searching IMDB")
+        self.__logger.debug("Started searching TMDB")
 
-        ia = IMDb()
+        mdb = MovieDb()
 
-        dlgProgress = wx.ProgressDialog("Searching IMDB...", "Preparing Search.......................................", 
-                                        len(self.__movieList), self, wx.PD_AUTO_HIDE | 
-                                        wx.PD_CAN_ABORT | wx.PD_APP_MODAL)
+        dlgProgress = wx.ProgressDialog("Searching TMDB...", 
+                                        "Preparing Search.......................................", 
+                                        len(self.__movieList), self, 
+                                        wx.PD_AUTO_HIDE | wx.PD_CAN_ABORT \
+                                                        | wx.PD_APP_MODAL)
 
         i = 1
 
@@ -99,46 +101,46 @@ class IMDBSearchDialog(wx.Dialog):
                 dlgProgress.Show(False)
                 return
 
-            results = ia.search_movie(movie.GetName())
+            results = mdb.search(movie.GetName())
             self.__resultCache.append(results)
 
             self.__logger.debug("Found %d results for '%s'", len(results), movie.GetName())
 
             index = self.lstResults.InsertStringItem(self.lstResults.GetItemCount(), movie.GetName())
 
-            imdbID = movie.GetIMDBID()
+            tmdbID = movie.GetTMDBID()
             resultIndex = 0
             resultTitle = ""
             resultID = ""
 
-            # If the movie doesn't have an IMDB ID set then just use the results
-            if imdbID == "" or imdbID.isspace():
+            # If the movie doesn't have a TMDB ID set then just use the results
+            if tmdbID == "" or tmdbID.isspace():
                 if len(results) == 0:
                     resultIndex = -1
                     resultTitle = "No title found"
                 else:
-                    resultTitle = results[0]['title']
-                    resultID = results[0].movieID
+                    resultTitle = results[0]['name']
+                    resultID = results[0]['id']
             else:
                 found = False
                 j = 0
 
                 for result in results:
-                    if result.movieID == imdbID:
+                    if result['id'] == tmdbID:
                         resultIndex = j
-                        resultTitle = result['title']
-                        resultID = result.movieID
+                        resultTitle = result['name']
+                        resultID = result['id']
                         found = True
                         break
                     j += 1
 
-                # If the movie's IMDB ID isn't contained in the results, add it to it
+                # If the movie's TMDB ID isn't contained in the results, add it to it
                 if not found:
-                    newResult = ia.get_movie(imdbID)
+                    newResult = mdb.getMovieInfo(tmdbID)
                     results.append(newResult)
                     resultIndex = len(results) - 1
-                    resultTitle = newResult['title']
-                    resultID = newResult.movieID
+                    resultTitle = newResult['name']
+                    resultID = newResult['id']
 
             self.__logger.debug(movie.GetName() + " - " + str(resultIndex) + ", " + resultTitle + ", " + resultID)
 
@@ -164,7 +166,7 @@ class IMDBSearchDialog(wx.Dialog):
         if len(results) == 0:
             return
 
-        dlgSearchResultSelect = IMDBSearchResultDialog(self, movie.GetName(), results, currentResultIndex)
+        dlgSearchResultSelect = TMDBSearchResultDialog(self, movie.GetName(), results, currentResultIndex)
 
         if dlgSearchResultSelect.ShowModal() == wx.ID_OK:
             currentResultIndex = dlgSearchResultSelect.GetSelectedIndex()
@@ -172,8 +174,8 @@ class IMDBSearchDialog(wx.Dialog):
             selectedResult = results[currentResultIndex]
 
             self.lstResults.SetItemData(selectedIndex, currentResultIndex)
-            self.lstResults.SetStringItem(selectedIndex, 1, selectedResult['title'])
-            self.lstResults.SetStringItem(selectedIndex, 2, selectedResult.movieID)
+            self.lstResults.SetStringItem(selectedIndex, 1, selectedResult['name'])
+            self.lstResults.SetStringItem(selectedIndex, 2, selectedResult['id'])
 
 
     def OnButtonOkClick(self, event):
@@ -192,7 +194,7 @@ class IMDBSearchDialog(wx.Dialog):
             
             selectedResult = results[selectedResultIndex]
 
-            movie.SetIMDBID(selectedResult.movieID.decode("utf-8"))
+            movie.SetTMDBID(selectedResult['id'])
 
             index += 1
 
