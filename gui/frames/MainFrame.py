@@ -88,9 +88,9 @@ class MainFrame(wx.Frame):
         self.tlbMain.AddLabelTool(wx.ID_OPEN, "Select Harddrive.", 
                                   wx.Bitmap("gui/images/hdd-on.png"),
                                   shortHelp = "Select Harddrive.")
-        self.tlbMain.AddLabelTool(wx.ID_REFRESH, "Refresh Harddrive.", 
-                                  wx.Bitmap("gui/images/refresh.png"),
-                                  shortHelp = "Refresh Harddrive")
+        self.tlbMain.AddLabelTool(wx.ID_REFRESH, "Reload Harddrive.", 
+                                  wx.Bitmap("gui/images/hdd-reload.png"),
+                                  shortHelp = "Reload Harddrive")
 
         self.tlbMain.AddSeparator()
 
@@ -273,7 +273,7 @@ class MainFrame(wx.Frame):
         """
 
         imdbFilter = FilterIMDB()
-        noIMDBMovies = imdbFilter.FilterList(self.__movieList, False)
+        noIMDBMovies = imdbFilter.FilterList(self.__movieList)
 
         self.ShowIMDBDialog(noIMDBMovies)
 

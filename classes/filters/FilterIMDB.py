@@ -53,8 +53,10 @@ class FilterIMDB(Filter):
 
         imdbID = movie.GetIMDBID()
 
+        print imdbID
+
         if self.__id is None:
-            return imdbID is None or imdbID.isspace()
+            return imdbID == "" or imdbID.isspace()
         else:
             return imdbID.find(self.__id) != -1
         

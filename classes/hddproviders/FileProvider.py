@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 """
 File: FileProvider.py
 Author: Revolt
@@ -159,22 +157,20 @@ class FileProvider(Provider):
         catFullPath = cat.GetFullPath()
         items = os.listdir(catFullPath)
 
-        for item in items:
-            itemFullPath = os.path.join(catFullPath, item)
-            if os.path.isdir(itemFullPath):
-                movie = None
-                self.__logger.debug("Reading directory: %s", itemFullPath)
+        for root, dirs, files in os.walk(catFullPath):
+            self.__logger.debug("Reading directory: %s", root)
 
-                for f in os.listdir(itemFullPath):
-                    name, extension = os.path.splitext(f)
-                    extension = extension[1:].lower()
-                    if extension in movieExtensions:
-                        self.__logger.debug("Found a movie in the directory: %s", f)
-                        movie = Movie(cat, item, item)
-                        break
-
-                if movie is not None:
+            for f in files:
+                name, extension = os.path.splitext(f)
+                extension = extension[1:].lower()
+                if extension in movieExtensions:
+                    self.__logger.debug("Found a movie in the directory: %s", f)
+                    movieDirRelPath = os.path.relpath(root, catFullPath)
+                    movieName = movieDirRelPath.replace("/", " ")
+                    movieName = movieName.replace("\\", " ")
+                    movie = Movie(cat, movieName, movieDirRelPath)
                     movieList.append(movie)
+                    break
 
         self.__logger.debug("Loaded %d movies from category '%s'", len(movieList), cat.GetName())
 
