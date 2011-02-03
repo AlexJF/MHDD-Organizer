@@ -26,7 +26,8 @@ Copyright (C) 2010 Revolt
 
 import os, uuid, ConfigParser, logging
 from Category import *
-from hddproviders.FileProvider import *
+from hddproviders.DBFileSyncProvider import *
+from hddproviders.DatabaseProvider import *
 
 class HardDrive(object):
     """ The HardDrive class """
@@ -51,7 +52,11 @@ class HardDrive(object):
         self.__path = path
         self.__loaded = False
         self.__categoryList = None
-        self.__provider = FileProvider(self)
+
+        if os.path.isdir(self.__path):
+            self.__provider = DBFileSyncProvider(self)
+        else:
+            self.__provider = DatabaseProvider(self)
 
         self.__logger.debug("Initialized new Harddrive: %s - %s - %s", hdduuid, label, path)
 
@@ -125,6 +130,7 @@ class HardDrive(object):
             @ catList (List of Categories) - The new category list
         """
 
+        self.__loaded = True
         self.__categoryList = catList
 
     # -- Methods --

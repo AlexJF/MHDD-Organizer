@@ -45,11 +45,11 @@ class FileProvider(Provider):
 
 
     # -- Methods --
-    def LoadCategoryList(self):
+    def GetCategoryList(self):
         """
-        Reads the category list of the HDD and sets it.
+        Reads the category list of the HDD and returns it.
         ---
-        Return: (Boolean) True if load was successful, False otherwise
+        Return: (List of Categories) Categories in the hdd.
         """
 
         harddrive = self.GetHdd()
@@ -58,7 +58,7 @@ class FileProvider(Provider):
 
         if not os.path.exists(hddCategoryConfigPath):
             self.__logger.debug("Didn't find categories in the HDD (%s)", self.GetHdd().GetUuid())
-            return False
+            return None
 
         categoryList = []
         hddCategoryConfigFile = None
@@ -75,14 +75,12 @@ class FileProvider(Provider):
             self.__logger.debug("Loaded %d categories from the HDD (%s)", len(categoryList), self.GetHdd().GetUuid())
         except IOError, e:
             self.__logger.exception("Error reading HDD category config file")
-            return False
+            return None
         finally:
             if hddCategoryConfigFile is not None:
                 hddCategoryConfigFile.close()
 
-        harddrive.SetCategoryList(categoryList)
-
-        return True
+        return categoryList
 
 
     def SaveCategoryList(self):
@@ -135,7 +133,7 @@ class FileProvider(Provider):
 
         return True
 
-    def LoadCategoryMovieList(self, cat):
+    def GetCategoryMovieList(self, cat):
         """
         Loads all movies contained in the provided category and returns a list
         with them.

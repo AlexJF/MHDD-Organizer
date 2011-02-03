@@ -42,10 +42,11 @@ class DatabaseProvider(Provider):
             @ hdd (HardDrive) - The harddrive associated with this provider instance.
         """
 
-        super(FileProvider, self).__init__(hdd)
+        Provider.__init__(self, hdd)
         self.__logger = logging.getLogger("main")
         
-        appDataFolder = wx.StandardPaths.GetUserDataDir()
+        stdPaths = wx.StandardPaths.Get()
+        appDataFolder = stdPaths.GetUserLocalDataDir()
         dbFolder = os.path.join(appDataFolder, "databases")
 
         if not os.path.isdir(dbFolder):
@@ -58,6 +59,7 @@ class DatabaseProvider(Provider):
         dbPath = os.path.join(dbFolder, hdd.GetUuid())
 
         self.__dbConn = sqlite3.connect(dbPath)
+        self.__dbConn.row_factory = sqlite3.Row
 
         self.InitializeDatabase()
 
@@ -77,26 +79,28 @@ class DatabaseProvider(Provider):
 
         dbCursor = self.__dbConn.cursor()
 
-        sql = "CREATE TABLE IF NOT EXISTS categories " + 
-              "(id INT PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, 
-                path TEXT UNIQUE);"
+        sql = "CREATE TABLE IF NOT EXISTS categories " + \
+              "(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, " + \
+              "path TEXT UNIQUE);"
 
         dbCursor.execute(sql)
 
-        sql = "CREATE TABLE IF NOT EXISTS movies " +
-              "(id INT PRIMARY KEY AUTOINCREMENT, cat INT, name TEXT, path TEXT UNIQUE" +
-              "image BLOB, title TEXT, imdb TEXT, year TEXT, rating INT, " +
+        sql = "CREATE TABLE IF NOT EXISTS movies " + \
+              "(id INTEGER PRIMARY KEY AUTOINCREMENT, cat INT, name TEXT, path TEXT UNIQUE," + \
+              "image BLOB, title TEXT, imdb TEXT, year TEXT, rating INT, " + \
               "genres TEXT, plot TEXT, directors TEXT, actors TEXT, moddate INT);"
 
         dbCursor.execute(sql)
 
         self.__dbConn.commit()
 
-    def LoadCategoryList(self):
+        dbCursor.close()
+
+    def GetCategoryList(self):
         """
-        Reads the category list of the HDD from the DB and sets it.
+        Gets the category list of the HDD and returns it.
         ---
-        Return: (Boolean) True if successful, false otherwise.
+        Return: (List of Categories) The categories in the HDD.
         """
 
         categoryList = []
@@ -110,12 +114,11 @@ class DatabaseProvider(Provider):
             categoryList.append(cat)
 
         self.__logger.debug("Read %d categories from the DB (%s)", 
-                            len(categoryList), self.GetHdd.GetUuid())
+                            len(categoryList), self.GetHdd().GetUuid())
 
-        self.GetHdd().SetCategoryList(categoryList)
+        dbCursor.close()
 
-        return True
-
+        return categoryList
 
     def SaveCategoryList(self):
         """
@@ -126,9 +129,9 @@ class DatabaseProvider(Provider):
 
         dbCursor = self.__dbConn.cursor()
 
-        dbCatList = self.LoadCategoryList()
+        dbCatList = self.GetCategoryList()
 
-        catList = self.GetHdd().GetCategoryList()
+        catList = list(self.GetHdd().GetCategoryList())
 
         updateList = []
         deleteList = []
@@ -138,13 +141,14 @@ class DatabaseProvider(Provider):
             j = 0
             for cat in catList:
                 # Category is present in both places so UPDATE
-                if dbCat.GetPath() == cat.GetPath():
+                if dbCat.GetRelativePath() == cat.GetRelativePath():
                     updateList.append(cat)
                     catList.pop(j)
                     break
                 j += 1
             else:
                 # Category is only present in  the DB so DELETE
+                deleteList.append(dbCat)
 
         # What was left in catList are the categories
         # not present in the DB so INSERT
@@ -152,19 +156,18 @@ class DatabaseProvider(Provider):
 
         for cat in updateList:
             dbCursor.execute("UPDATE categories SET name = ? WHERE path = ?",
-                             cat.GetName(),
-                             cat.GetPath())
+                             [cat.GetName(), cat.GetRelativePath()])
 
         for cat in deleteList:
-            dbCursor.execute("SELECT id FROM categories WHERE path = ?", cat.GetPath())
+            dbCursor.execute("SELECT id FROM categories WHERE path = ?", [cat.GetRelativePath()])
             result = dbCursor.fetchone()
             catid = result['id']
-            dbCursor.execute("DELETE FROM categories, movies WHERE id = ?", catid)
-            dbCursor.execute("DELETE FROM movies WHERE cat = ?", catid)
+            dbCursor.execute("DELETE FROM categories, movies WHERE id = ?", [catid])
+            dbCursor.execute("DELETE FROM movies WHERE cat = ?", [catid])
 
         for cat in insertList:
-            dbCursor.execute("INSERT INTO categories (id, name, path)
-                              VALUES (, ?, ?)", cat.GetName(), cat.GetPath())
+            dbCursor.execute("INSERT INTO categories (name, path) " + \
+                             "VALUES (?, ?)", [cat.GetName(), cat.GetRelativePath()])
 
         self.__dbConn.commit()
 
@@ -174,31 +177,30 @@ class DatabaseProvider(Provider):
 
         return True
 
-    def LoadCategoryMovieList(self, cat):
+    def GetCategoryMovieList(self, cat):
         """
-        Loads all movies contained in the provided category and sets them to
-        the provided category.
+        Loads all movies contained in the provided category and returns them
+        in a list.
         ---
         Params:
             @ cat (Category) - The category whose movies we want to load.
         ---
-        Return: (Boolean) True if successful, False otherwise
+        Return: (List of Movies) - Movies contained in the category.
         """
 
         self.__logger.debug("Loading movie list from category '%s'", cat.GetName())
 
         if cat.GetHdd() != self.GetHdd():
             self.__logger.error("Category doesn't belong to the HDD associated with this provider")
-            return False
+            return None
 
         movieList = []
-        separator = u"||"
 
         dbCursor = self.__dbConn.cursor()
 
-        dbCursor.execute("SELECT name, path FROM movies INNER JOIN categories " + 
-                         "ON categories.id = movies.cat WHERE categories.path = ?"
-                         cat.GetPath())
+        dbCursor.execute("SELECT movies.name, movies.path FROM movies INNER JOIN categories " + \
+                         "ON categories.id = movies.cat WHERE categories.path = ?",
+                         [cat.GetRelativePath()])
 
         for movieData in dbCursor:
             movie = Movie(cat, movieData['name'], movieData['path'])
@@ -207,9 +209,9 @@ class DatabaseProvider(Provider):
 
         self.__logger.debug("Loaded %d movies from category '%s'", len(movieList), cat.GetName())
 
-        cat.SetMovieList(movieList)
+        dbCursor.close()
 
-        return True
+        return movieList
 
     def GetMovieInfoDict(self, movie):
         """
@@ -225,11 +227,17 @@ class DatabaseProvider(Provider):
 
         dbCursor = self.__dbConn.cursor()
 
-        dbCursor.execute("SELECT * FROM movies WHERE movies.path = ?", movie.GetRelPath())
+        dbCursor.execute("SELECT * FROM movies WHERE movies.path = ?", [movie.GetRelativePath()])
 
-        movieData = dbCursor.fetchone()
+        movieDict = dict()
+        row = dbCursor.fetchone()
+        
+        for key in row.keys():
+            movieDict[key] = row[key]
 
-        return movieData
+        dbCursor.close()
+
+        return movieDict
 
     def SaveMovieInfo(self, movie):
         """
@@ -244,13 +252,13 @@ class DatabaseProvider(Provider):
         dbCursor = self.__dbConn.cursor()
 
         dbCursor.execute("SELECT id FROM categories WHERE path = ?",
-                         movie.GetCategory().GetRelativePath())
+                         [movie.GetCategory().GetRelativePath()])
 
         result = dbCursor.fetchone()
         catid = result['id']
-
-        dbCursor.execute("SELECT id FROM movies WHERE cat = ? " +
-                         " AND path = ?", catid, movie.GetRelativePath())
+        
+        dbCursor.execute("SELECT id FROM movies WHERE cat = ? " + \
+                         " AND path = ?", [catid, movie.GetRelativePath()])
 
         result = dbCursor.fetchone()
 
@@ -258,33 +266,36 @@ class DatabaseProvider(Provider):
 
         movie.SetModificationDate(datetime.now())
 
-        movieDict = {'cat':catid, 'path':movie.GetRelativePath()}
-
-        for key, value in movieDict.iteritems():
-            if isinstance(value, list):
-                value = separator.join(value)
-            elif isinstance(value, datetime):
-                value = time.mktime(value.timetuple())
+        movieDict = {'cat':catid, 'name':movie.GetName(), 'path':movie.GetRelativePath()}
 
         infoDict = movie.GetInfoDict()
+        for key, value in infoDict.iteritems():
+            if isinstance(value, list):
+                infoDict[key] = separator.join(value)
+            elif isinstance(value, datetime):
+                infoDict[key] = time.mktime(value.timetuple())
+
         parameterDict = dict(infoDict)
         parameterDict.update(movieDict)
+        parameterDict['image'] = buffer(parameterDict['image'])
 
-        if len(result) == 0:
+        if result is None:
             # If the movie we are saving isn't present in the DB, INSERT
-            dbCursor.execute("INSERT INTO movies (id, cat, name, path, image, title, " +
-                             "imdb, year, rating, genres, plot, directors, actors, " +
-                             "modddate) VALUES (, :cat, :name, :path, :image, :title, " +
-                             ":imdb, :year, :rating, :genres, :plot, :directors, " +
+            dbCursor.execute("INSERT INTO movies (cat, name, path, image, title, " + \
+                             "imdb, year, rating, genres, plot, directors, actors, " + \
+                             "moddate) VALUES (:cat, :name, :path, :image, :title, " + \
+                             ":imdb, :year, :rating, :genres, :plot, :directors, " + \
                              ":actors, :moddate)", parameterDict)
         else:
             # Else, if the movie is present in the DB, UPDATE
-            dbCursor.execute("UPDATE movies SET image = :image, title = :title, " +
-                             "imdb = :imdb, year = :year, rating = :rating, " + 
-                             "genres = :genres, plot = :plot, directors = :directors, " +
-                             "actors = :actors, moddate = :moddate WHERE cat = :cat " + 
-                             "AND path = :path",
-                             parameterDict)
+            dbCursor.execute("UPDATE movies SET image = :image, title = :title, " + \
+                             "imdb = :imdb, year = :year, rating = :rating, " +  \
+                             "genres = :genres, plot = :plot, directors = :directors, " + \
+                             "actors = :actors, moddate = :moddate WHERE cat = :cat " +  \
+                             "AND path = :path", parameterDict)
+
+        self.__dbConn.commit()
+        dbCursor.close()
 
         return True
 
@@ -309,12 +320,15 @@ class DatabaseProvider(Provider):
         dbCursor = self.__dbConn.cursor()
 
         dbCursor.execute("SELECT id FROM categories WHERE path = ?", 
-                         cat.GetRelativePath())
+                         [cat.GetRelativePath()])
         result = dbCursor.fetchone()
         catid = result['id']
 
         dbCursor.execute("DELETE FROM movies WHERE path = ? AND cat = ?", 
-                         movie.GetRelativePath(), catid)
+                         [movie.GetRelativePath(), catid])
+
+        self.__dbConn.commit()
+        dbCursor.close()
 
         return True
 

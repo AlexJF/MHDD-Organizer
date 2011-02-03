@@ -192,8 +192,11 @@ class MainFrame(wx.Frame):
 
         self.__currentCategory = cat
         self.__movieList = cat.GetMovieList()
-        self.__movieList.sort(key = methodcaller("GetName"))
+        if self.__movieList is not None:
+            self.__movieList.sort(key = methodcaller("GetName"))
         self.PopulateMovieList()
+        if self.lstMovie.GetItemCount() > 0:
+            self.lstMovie.Select(0)
 
     def PopulateMovieList(self, condition = None):
         """

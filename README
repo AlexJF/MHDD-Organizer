@@ -16,6 +16,7 @@ USING
     dependencies:
       - wxPython
       - IMDbPY
+      - SQLite3 (python bindings)
 
     To launch the application run:
     $ python main.py

@@ -42,13 +42,13 @@ class DBFileSyncProvider(Provider):
             @ hdd (HardDrive) - The harddrive associated with this provider instance.
         """
 
-        super(FileProvider, self).__init__(hdd)
+        Provider.__init__(self, hdd)
         self.__logger = logging.getLogger("main")
         self.__dbProvider = DatabaseProvider(hdd)
         self.__fileProvider = FileProvider(hdd)
         
     # -- Methods --
-    def LoadCategoryList(self):
+    def GetCategoryList(self):
         """
         Reads the category list of the HDD from the directory tree
         and returns it.
@@ -59,11 +59,24 @@ class DBFileSyncProvider(Provider):
                  hdd associated with this provider.
         """
 
-        self.__fileProvider.LoadCategoryList()
+        return self.__fileProvider.GetCategoryList()
+
+    def LoadCategoryList(self):
+        """
+        Reads the category list of the HDD and sets it.
+        ---
+        Return: (Boolean) True if successful, false otherwise.
+        """
+
+        categoryList = self.GetCategoryList()
+        
+        if categoryList is None:
+            return False
+
+        self.GetHdd().SetCategoryList(categoryList)
         self.__dbProvider.SaveCategoryList()
 
-        return categoryList
-
+        return True
 
     def SaveCategoryList(self):
         """
@@ -77,7 +90,7 @@ class DBFileSyncProvider(Provider):
 
         return True
 
-    def LoadCategoryMovieList(self, cat):
+    def GetCategoryMovieList(self, cat):
         """
         Loads all movies contained in the provided category and returns a list
         with them.
@@ -88,8 +101,8 @@ class DBFileSyncProvider(Provider):
         Return: (List of Movies) The movies contained in the category.
         """
 
-        hddMovieList = self.__fileProvider.LoadCategoryMovieList(cat)
-        dbMovieList = self.__dbProvider.LoadCategoryMovieList(cat)
+        hddMovieList = self.__fileProvider.GetCategoryMovieList(cat)
+        dbMovieList = self.__dbProvider.GetCategoryMovieList(cat)
         movieList = []
 
         for hddMovie in hddMovieList:
@@ -151,7 +164,7 @@ class DBFileSyncProvider(Provider):
                 return dbInfo
         elif hddInfo is not None:
             return hddInfo
-        else
+        else:
             return dbInfo
 
     def SaveMovieInfo(self, movie):

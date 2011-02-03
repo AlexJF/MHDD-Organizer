@@ -114,7 +114,7 @@ class Category(object):
     # -- Methods --
     def GetMovieList(self, refresh = False):
         """
-        Retrieves the list of movies managed by this category
+        Retrieves the list of movies managed by this category.
         ---
         Params:
             @ refresh (Boolean) - Whether or not to force a refresh of the list.
@@ -125,6 +125,16 @@ class Category(object):
         if self.__movieList is not None and not refresh:
             return self.__movieList
 
-        self.__movieList = self.__hdd.LoadCategoryMovieList(self)
+        self.__hdd.LoadCategoryMovieList(self)
 
         return self.__movieList
+
+    def SetMovieList(self, movieList):
+        """
+        Sets the list of movies managed by this category.
+        ---
+        Params:
+            @ movieList (List of Movies) - Movies managed by this category.
+        """
+
+        self.__movieList = movieList

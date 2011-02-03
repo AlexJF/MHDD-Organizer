@@ -46,7 +46,7 @@ class Provider(object):
         return self.__hdd
 
     # -- Methods --
-    def LoadCategoryList(self):
+    def GetCategoryList(self):
         """
         Reads the category list of the HDD and returns it.
         ---
@@ -56,22 +56,34 @@ class Provider(object):
 
         raise NotImplementedError()
 
-    def SaveCategoryList(self, catList = None):
+    def LoadCategoryList(self):
+        """
+        Reads the category list of the HDD and sets it.
+        ---
+        Return: (Boolean) True if successful, false otherwise.
+        """
+
+        categoryList = self.GetCategoryList()
+        
+        if categoryList is None:
+            return False
+
+        self.GetHdd().SetCategoryList(categoryList)
+
+        return True
+
+    def SaveCategoryList(self):
         """
         Saves category list of the associated hdd.
-        ---
-        Params:
-            @ catList (List of Categories) - A list of categories to save.
-              Should catList be None, the provider gets the list from the HDD.
         ---
         Return: (Boolean) True on success, False otherwise
         """
 
         raise NotImplementedError()
 
-    def LoadCategoryMovieList(self, cat):
+    def GetCategoryMovieList(self, cat):
         """
-        Loads all movies contained in the provided category.
+        Gets a list of all movies contained in the provided category.
         ---
         Params:
              @ cat (Category) - The category whose movies we wish to load.
@@ -80,6 +92,26 @@ class Provider(object):
         """
         
         raise NotImplementedError()
+
+    def LoadCategoryMovieList(self, cat):
+        """
+        Loads all movies contained in the provided category and sets them to
+        the provided category.
+        ---
+        Params:
+            @ cat (Category) - The category whose movies we want to load.
+        ---
+        Return: (Boolean) True if successful, False otherwise
+        """
+
+        movieList = self.GetCategoryMovieList(cat)
+
+        if movieList is None:
+            return False
+
+        cat.SetMovieList(movieList)
+
+        return True
 
     def GetMovieInfoDict(self, movie):
         """

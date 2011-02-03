@@ -57,6 +57,13 @@ class Movie(object):
         self.__imageData = None
 
     # -- Properties (Get) --
+    def GetCategory(self):
+        """
+        Return: (Category) The category of the movie.
+        """
+        
+        return self.__category
+
     def GetName(self):
         """
         Return: (UString) The title of the movie.
@@ -161,8 +168,11 @@ class Movie(object):
         if isinstance(date, datetime):
             self.__modDate = date
         else:
-            timestamp = int(date)
-            self.__modDate = datetime.fromtimestamp(timestamp)
+            try:
+                timestamp = float(date)
+                self.__modDate = datetime.fromtimestamp(timestamp)
+            except ValueError, e:
+                self.__modDate = datetime.fromtimestamp(0)
 
     def SetTitle(self, title):
         """
@@ -285,7 +295,7 @@ class Movie(object):
         """
 
         self.__dirty = True
-        self.__imageData = image
+        self.__imageData = bytearray(image)
 
     # -- Methods --
     def GetInfoDict(self):
@@ -412,6 +422,7 @@ setMethodsDict['genres'] = Movie.SetGenres
 setMethodsDict['directors'] = Movie.SetDirectors
 setMethodsDict['actors'] = Movie.SetActors
 setMethodsDict['image'] = Movie.SetImageData
+setMethodsDict['moddate'] = Movie.SetModificationDate
 
 getMethodsDict = dict()
 getMethodsDict['title'] = Movie.GetTitle
@@ -423,3 +434,4 @@ getMethodsDict['genres'] = Movie.GetGenres
 getMethodsDict['directors'] = Movie.GetDirectors
 getMethodsDict['actors'] = Movie.GetActors
 getMethodsDict['image'] = Movie.GetImageData
+getMethodsDict['moddate'] = Movie.GetModificationDate

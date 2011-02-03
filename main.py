@@ -47,8 +47,11 @@ class MainApp(wx.App):
 
         #wx.Image.AddHandler(wx.PNGHandler())
         #wx.Image.AddHandler(wx.JPEGHandler())
+        stdPaths = wx.StandardPaths.Get()
+        appDataFolder = stdPaths.GetUserLocalDataDir()
 
-        self.config = wx.FileConfig(style=wx.CONFIG_USE_LOCAL_FILE)
+        self.config = wx.FileConfig(localFilename = os.path.join(appDataFolder, "config"),
+                                    style = wx.CONFIG_USE_LOCAL_FILE)
         wx.Config.Set(self.config)
 
         self.frame = MainFrame(None, "MHDD Organizer")
