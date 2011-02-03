@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 """
 File: DatabaseProvider.py
 Author: Revolt
@@ -87,7 +85,7 @@ class DatabaseProvider(Provider):
 
         sql = "CREATE TABLE IF NOT EXISTS movies " + \
               "(id INTEGER PRIMARY KEY AUTOINCREMENT, cat INT, name TEXT, path TEXT UNIQUE," + \
-              "image BLOB, title TEXT, imdb TEXT, year TEXT, rating INT, " + \
+              "image BLOB, title TEXT, tmdb TEXT, year TEXT, rating INT, " + \
               "genres TEXT, plot TEXT, directors TEXT, actors TEXT, moddate INT);"
 
         dbCursor.execute(sql)
@@ -281,14 +279,14 @@ class DatabaseProvider(Provider):
         if result is None:
             # If the movie we are saving isn't present in the DB, INSERT
             dbCursor.execute("INSERT INTO movies (cat, name, path, image, title, " + \
-                             "imdb, year, rating, genres, plot, directors, actors, " + \
+                             "tmdb, year, rating, genres, plot, directors, actors, " + \
                              "moddate) VALUES (:cat, :name, :path, :image, :title, " + \
-                             ":imdb, :year, :rating, :genres, :plot, :directors, " + \
+                             ":tmdb, :year, :rating, :genres, :plot, :directors, " + \
                              ":actors, :moddate)", parameterDict)
         else:
             # Else, if the movie is present in the DB, UPDATE
             dbCursor.execute("UPDATE movies SET image = :image, title = :title, " + \
-                             "imdb = :imdb, year = :year, rating = :rating, " +  \
+                             "tmdb = :tmdb, year = :year, rating = :rating, " +  \
                              "genres = :genres, plot = :plot, directors = :directors, " + \
                              "actors = :actors, moddate = :moddate WHERE cat = :cat " +  \
                              "AND path = :path", parameterDict)

@@ -1,12 +1,12 @@
 #! /usr/bin/env python
 
 """
-File: FilterIMDB.py
+File: FilterTMDB.py
 Author: Revolt
 --------------------------
 Desc:
-    This file contains the definition of the FilterIMDB class
-    which filters movies according to their IMDB id
+    This file contains the definition of the FilterTMDB class
+    which filters movies according to their TMDB id
 --------------------------
 Copyright (C) 2010 Revolt 
 
@@ -26,16 +26,16 @@ Copyright (C) 2010 Revolt
 
 from classes.Filter import *
 
-class FilterIMDB(Filter):
-    """ The Filter IMDB class """
+class FilterTMDB(Filter):
+    """ The Filter TMDB class """
 
     def __init__(self, id = None):
         """
-        Initializes a new FilterIMDB instance.
+        Initializes a new FilterTMDB instance.
         ---
         Params:
-            @ id (UString) - Part of the imdb id to search for.
-                             If None, match only empty imdb id
+            @ id (UString) - Part of the tmdb id to search for.
+                             If None, match only empty tmdb id
         """
 
         self.__id = id
@@ -51,10 +51,10 @@ class FilterIMDB(Filter):
                  otherwise.
         """
 
-        imdbID = movie.GetIMDBID()
+        tmdbID = movie.GetTMDBID()
 
         if self.__id is None:
-            return imdbID == "" or imdbID.isspace()
+            return tmdbID == "" or tmdbID.isspace()
         else:
-            return imdbID.find(self.__id) != -1
+            return tmdbID.find(self.__id) != -1
         

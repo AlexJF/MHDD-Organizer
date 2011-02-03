@@ -25,7 +25,7 @@ Copyright (C) 2010 Revolt
 
 
 import wx, logging
-from classes.infoproviders.tmdb import tmdb
+from classes.infoproviders import tmdb
 from TMDBSearchResultDialog import *
 
 class TMDBSearchDialog(wx.Dialog):
@@ -84,7 +84,7 @@ class TMDBSearchDialog(wx.Dialog):
 
         self.__logger.debug("Started searching TMDB")
 
-        mdb = MovieDb()
+        mdb = tmdb.MovieDb()
 
         dlgProgress = wx.ProgressDialog("Searching TMDB...", 
                                         "Preparing Search.......................................", 

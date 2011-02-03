@@ -55,9 +55,9 @@ class MovieDetailsPanel(wx.Panel):
         self.lblTitle = wx.StaticText(self, label="Title:")
         self.txtTitle = wx.TextCtrl(self, size=(250, -1))
 
-        self.lblIMDB = wx.StaticText(self, label="IMDB ID:")
-        self.txtIMDB = wx.TextCtrl(self, size=(250, -1))
-        self.lnkIMDB = wx.HyperlinkCtrl(self, wx.ID_ANY, "Go", "http://www.imdb.com")
+        self.lblTMDB = wx.StaticText(self, label="TMDB ID:")
+        self.txtTMDB = wx.TextCtrl(self, size=(250, -1))
+        self.lnkTMDB = wx.HyperlinkCtrl(self, wx.ID_ANY, "Go", "http://www.imdb.com")
 
         self.lblRelYear = wx.StaticText(self, label="Release Year:")
         self.txtRelYear = wx.TextCtrl(self, size=(40, -1))
@@ -91,9 +91,9 @@ class MovieDetailsPanel(wx.Panel):
         self.szrGrid.Add(self.imgCover, (0, 3), (6, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 20)
         self.szrGrid.Add(self.lblTitle, (1, 0), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3) 
         self.szrGrid.Add(self.txtTitle, (1, 1), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
-        self.szrGrid.Add(self.lblIMDB, (2, 0), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3) 
-        self.szrGrid.Add(self.txtIMDB, (2, 1), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
-        self.szrGrid.Add(self.lnkIMDB, (2, 2), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3) 
+        self.szrGrid.Add(self.lblTMDB, (2, 0), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3) 
+        self.szrGrid.Add(self.txtTMDB, (2, 1), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
+        self.szrGrid.Add(self.lnkTMDB, (2, 2), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3) 
         self.szrGrid.Add(self.szrDateAndRating, (3, 0), (1, 3), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3)
         self.szrGrid.Add(self.lblGenres, (4, 0), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3) 
         self.szrGrid.Add(self.txtGenres, (4, 1), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
@@ -116,7 +116,7 @@ class MovieDetailsPanel(wx.Panel):
         # -- Event Binding --
         self.btnSave.Bind(wx.EVT_BUTTON, self.OnSave)
         self.imgCover.Bind(wx.EVT_LEFT_UP, self.OnImageClick)
-        self.lnkIMDB.Bind(wx.EVT_HYPERLINK, self.OnLinkClick)
+        self.lnkTMDB.Bind(wx.EVT_HYPERLINK, self.OnLinkClick)
 
     # -- METHODS --
     def SetMovie(self, movie):
@@ -127,7 +127,7 @@ class MovieDetailsPanel(wx.Panel):
         self.__currentMovie = movie
         self.lblName.SetLabel(movie.GetName())
         self.txtTitle.SetValue(movie.GetTitle())
-        self.txtIMDB.SetValue(movie.GetIMDBID())
+        self.txtTMDB.SetValue(movie.GetTMDBID())
         self.txtRelYear.SetValue(movie.GetYear())
         self.spnRating.SetValue(movie.GetRating())
         separator = u", "
@@ -152,7 +152,7 @@ class MovieDetailsPanel(wx.Panel):
         """
 
         self.__currentMovie.SetTitle(self.txtTitle.GetValue())
-        self.__currentMovie.SetIMDBID(self.txtIMDB.GetValue())
+        self.__currentMovie.SetTMDBID(self.txtTMDB.GetValue())
         self.__currentMovie.SetYear(self.txtRelYear.GetValue())
         self.__currentMovie.SetRating(self.spnRating.GetValue())
         self.__currentMovie.SetGenres(self.txtGenres.GetValue().split(", "))
@@ -190,8 +190,8 @@ class MovieDetailsPanel(wx.Panel):
         Handles a click on the 'Go' link.
         """
 
-        imdbID = self.txtIMDB.GetValue()
+        tmdbID = self.txtTMDB.GetValue()
         
-        if not imdbID.isspace():
-            imdbURL = "http://www.imdb.com/title/tt" + imdbID
-            wx.LaunchDefaultBrowser(imdbURL)
+        if not tmdbID.isspace():
+            tmdbURL = "http://www.tmdb.com/movie/" + imdbID
+            wx.LaunchDefaultBrowser(tmdbURL)

@@ -194,6 +194,7 @@ class MainFrame(wx.Frame):
         """
 
         dsbWindow = wx.WindowDisabler()
+        infBusy = wx.BusyInfo("Please wait...", self)
         self.__currentCategory = cat
         self.__movieList = cat.GetMovieList()
         if self.__movieList is not None:
@@ -201,6 +202,7 @@ class MainFrame(wx.Frame):
         self.PopulateMovieList()
         if self.lstMovie.GetItemCount() > 0:
             self.lstMovie.Select(0)
+        del infBusy
         del dsbWindow
 
     def PopulateMovieList(self, condition = None):

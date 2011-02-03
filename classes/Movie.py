@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 """
 File: Movie.py
 Author: Revolt
@@ -25,7 +23,7 @@ Copyright (C) 2010 Revolt
 
 import os, urllib
 from datetime import datetime
-from imdb import IMDb
+from infoproviders import tmdb
 
 class Movie(object):
     """ The Movie class """
