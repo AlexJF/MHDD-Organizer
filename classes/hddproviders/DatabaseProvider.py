@@ -212,51 +212,6 @@ class DatabaseProvider(Provider):
 
         return movieList
 
-    def SaveCategoryMovieList(self, cat):
-        """
-        Saves all movies contained in the provided category.
-        ---
-        Params:
-            @ cat (Category) - The category whose movies we wish to save.
-        """
-
-        self.__logger.debug("Saving all movies inside the provided category '%s'",
-                            cat.GetName())
-
-        existingMovieList = self.LoadCategoryMovieList()
-        newMovieList = cat.GetMovieList()
-        deleteList = []
-
-        found = False
-
-        for existingmovie in existingMovieList:
-            found = False
-
-            for movie in newMovieList:
-                if movie.GetRelativePath() == existingMovie.GetRelativePath():
-                    found = True
-                    break
-
-            if not found:
-                deleteList.append(existingMovie)
-
-        for movie in newMovieList:
-            self.SaveMovieInfo(movie)
-
-        if len(deleteList) > 0:
-            dbCursor = self.__dbConn.cursor()
-
-            dbCursor.execute("SELECT id FROM categories WHERE path = ?", cat.GetRelativePath())
-            result = dbCursor.fetchone()
-
-            catid = result['id']
-
-            for movie in deleteList:
-                dbCursor.execute("DELETE FROM movies WHERE path = ? AND cat = ?", 
-                                 movie.GetRelativePath(), catid)
-
-        return True
-
     def LoadMovieInfo(self, movie):
         """
         Loads all info of the provided movie into its object.
@@ -340,3 +295,34 @@ class DatabaseProvider(Provider):
                              movie.GetModificationDate(), catid, movie.GetRelativePath())
 
         return True
+
+    def DeleteMovieInfo(self, movie):
+        """
+        Deletes the provided movie from the database.
+        Note: Only the DatabaseProvider should have this method since
+        its structure is defined by the physical file structure on disk.
+        Therefore on sync, the app might detect that one movie that was
+        previously on the HDD is no more and, therefore, should be removed
+        from the DB cache.
+        ---
+        Params:
+            @ movie (Movie) - The movie whose info we wish to remove.
+        """
+
+        self.__logger.debug("Deleting movie '%s' from database",
+                            movie.GetName())
+
+        cat = movie.GetCategory()
+
+        dbCursor = self.__dbConn.cursor()
+
+        dbCursor.execute("SELECT id FROM categories WHERE path = ?", 
+                         cat.GetRelativePath())
+        result = dbCursor.fetchone()
+        catid = result['id']
+
+        dbCursor.execute("DELETE FROM movies WHERE path = ? AND cat = ?", 
+                         movie.GetRelativePath(), catid)
+
+        return True
+
