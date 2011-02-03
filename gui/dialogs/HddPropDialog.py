@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-
 """
 File: HddPropDialog.py
 Author: Revolt
@@ -196,7 +194,7 @@ class HddPropDialog(wx.Dialog):
 
         for category in self.__hardDrive.GetCategoryList():
             if not os.path.isdir(category.GetFullPath()):
-                category.SetRelPath("")
+                category.SetRelativePath("")
                 self.UpdateCategoryListView(index, category)
             index += 1
 
@@ -262,5 +260,4 @@ class HddPropDialog(wx.Dialog):
             editedCategory = dlgCatProp.GetCategory()
             self.__hardDrive.GetCategoryList()[selectedIndex] = editedCategory
             self.UpdateCategoryListView(selectedIndex, editedCategory) 
-
 

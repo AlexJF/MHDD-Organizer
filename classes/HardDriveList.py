@@ -75,6 +75,8 @@ class HardDriveList(object):
             config.Write("Label", hardDrive.GetLabel())
             config.Write("Path", hardDrive.GetPath())
 
+        hardDrive.SaveCategoryList()
+
     def Edit(self, index, newHardDrive):
         """
         Edits the harddrive located at the specified index with
@@ -117,6 +119,11 @@ class HardDriveList(object):
                 config.DeleteGroup(hdd.GetUuid())
 
         del self.__container[index]
+
+        stdPaths = wx.StandardPaths_Get()
+        dbPath = os.path.join(stdPaths.GetUserLocalDataDir(), "databases", hdd.GetUuid())
+        if os.path.isfile(dbPath):
+            os.unlink(dbPath)
 
     def SaveToConfig(self, configSync = True):
         """

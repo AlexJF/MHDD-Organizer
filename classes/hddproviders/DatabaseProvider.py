@@ -53,7 +53,7 @@ class DatabaseProvider(Provider):
             try:
                 os.mkdir(dbFolder)
             except OSError, e:
-                self.__logger.exception("Error creating database directory")
+                self.__logger.exception("DB - Error creating database directory")
                 raise e
 
         dbPath = os.path.join(dbFolder, hdd.GetUuid())
@@ -68,7 +68,7 @@ class DatabaseProvider(Provider):
         Handles the destruction of a DatabaseProvider instance.
         """
 
-        self.__logger.debug("Destroying DatabaseProvider...")
+        self.__logger.debug("DB - Destroying DatabaseProvider...")
         self.__dbConn.close()
 
     # -- Methods --
@@ -113,7 +113,7 @@ class DatabaseProvider(Provider):
             cat = Category(row[1], row[2], self.GetHdd())
             categoryList.append(cat)
 
-        self.__logger.debug("Read %d categories from the DB (%s)", 
+        self.__logger.debug("DB - Read %d categories from the DB (%s)", 
                             len(categoryList), self.GetHdd().GetUuid())
 
         dbCursor.close()
@@ -162,7 +162,7 @@ class DatabaseProvider(Provider):
             dbCursor.execute("SELECT id FROM categories WHERE path = ?", [cat.GetRelativePath()])
             result = dbCursor.fetchone()
             catid = result['id']
-            dbCursor.execute("DELETE FROM categories, movies WHERE id = ?", [catid])
+            dbCursor.execute("DELETE FROM categories WHERE id = ?", [catid])
             dbCursor.execute("DELETE FROM movies WHERE cat = ?", [catid])
 
         for cat in insertList:
@@ -171,7 +171,7 @@ class DatabaseProvider(Provider):
 
         self.__dbConn.commit()
 
-        self.__logger.debug("Successfully wrote %d categories to the DB (%s)", 
+        self.__logger.debug("DB - Successfully wrote %d categories to the DB (%s)", 
                             len(updateList) + len(insertList),
                             self.GetHdd().GetUuid())
 
@@ -188,10 +188,10 @@ class DatabaseProvider(Provider):
         Return: (List of Movies) - Movies contained in the category.
         """
 
-        self.__logger.debug("Loading movie list from category '%s'", cat.GetName())
+        self.__logger.debug("DB - Loading movie list from category '%s'", cat.GetName())
 
         if cat.GetHdd() != self.GetHdd():
-            self.__logger.error("Category doesn't belong to the HDD associated with this provider")
+            self.__logger.error("DB - Category doesn't belong to the HDD associated with this provider")
             return None
 
         movieList = []
@@ -207,7 +207,7 @@ class DatabaseProvider(Provider):
             self.LoadMovieInfo(movie)
             movieList.append(movie)
 
-        self.__logger.debug("Loaded %d movies from category '%s'", len(movieList), cat.GetName())
+        self.__logger.debug("DB - Loaded %d movies from category '%s'", len(movieList), cat.GetName())
 
         dbCursor.close()
 
@@ -223,7 +223,7 @@ class DatabaseProvider(Provider):
         Return: (Dict) A dict containing movie info.
         """
 
-        self.__logger.debug("Getting movie '%s' info", movie.GetName()) 
+        self.__logger.debug("DB - Getting movie '%s' info", movie.GetName()) 
 
         dbCursor = self.__dbConn.cursor()
 
@@ -247,7 +247,7 @@ class DatabaseProvider(Provider):
             @ movie (Movie) - The movie to save.
         """
 
-        self.__logger.debug("Saving movie '%s' info", movie.GetName()) 
+        self.__logger.debug("DB - Saving movie '%s' info", movie.GetName()) 
 
         dbCursor = self.__dbConn.cursor()
 
@@ -277,7 +277,6 @@ class DatabaseProvider(Provider):
 
         parameterDict = dict(infoDict)
         parameterDict.update(movieDict)
-        parameterDict['image'] = buffer(parameterDict['image'])
 
         if result is None:
             # If the movie we are saving isn't present in the DB, INSERT
@@ -312,7 +311,7 @@ class DatabaseProvider(Provider):
             @ movie (Movie) - The movie whose info we wish to remove.
         """
 
-        self.__logger.debug("Deleting movie '%s' from database",
+        self.__logger.debug("DB - Deleting movie '%s' from database",
                             movie.GetName())
 
         cat = movie.GetCategory()

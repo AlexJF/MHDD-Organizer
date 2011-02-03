@@ -49,16 +49,14 @@ class HardDrive(object):
         self.__logger = logging.getLogger("main")
         self.__uuid = hdduuid 
         self.__label = label
-        self.__path = path
+        self.__path = ""
         self.__loaded = False
-        self.__categoryList = None
+        self.__categoryList = []
+        self.__provider = None
 
-        if os.path.isdir(self.__path):
-            self.__provider = DBFileSyncProvider(self)
-        else:
-            self.__provider = DatabaseProvider(self)
+        self.SetPath(path)
 
-        self.__logger.debug("Initialized new Harddrive: %s - %s - %s", hdduuid, label, path)
+        self.__logger.debug("Initialized new Harddrive: %s - %s - %s - %s", hdduuid, label, path, self.__provider)
 
     # -- Get Properties --
     def GetUuid(self):
@@ -114,6 +112,16 @@ class HardDrive(object):
 
         self.__path = path
 
+        if path == "":
+            if self.__provider is not None:
+                self.SetProvider(None)
+        elif self.Connected():
+            if not isinstance(self.__provider, DBFileSyncProvider):
+                self.SetProvider(DBFileSyncProvider(self))
+        else:
+            if not isinstance(self.__provider, DatabaseProvider):
+                self.SetProvider(DatabaseProvider(self))
+
     def SetProvider(self, provider):
         """
         Sets a new HDD provider
@@ -121,14 +129,20 @@ class HardDrive(object):
             @ provider - The new provider for this HDD
         """
         
+        self.__logger.debug("Setting new provider '%s' on HDD '%s'", type(provider), self.__uuid)
         self.__provider = provider
 
     def SetCategoryList(self, catList):
         """
         Sets a new category list
         ---
+        Params:
             @ catList (List of Categories) - The new category list
         """
+
+        if catList is None:
+            self.__categoryList = []
+            return
 
         self.__loaded = True
         self.__categoryList = catList
@@ -150,6 +164,9 @@ class HardDrive(object):
         Return: (Boolean) True on success, False on failure
         """
 
+        if self.__provider is None:
+            return False
+
         return self.__provider.LoadCategoryList()
 
     def SaveCategoryList(self):
@@ -158,6 +175,9 @@ class HardDrive(object):
         ---
         Return: (Boolean) True on success, False on failure
         """
+
+        if self.__provider is None:
+            return False
 
         return self.__provider.SaveCategoryList()
 
@@ -171,6 +191,9 @@ class HardDrive(object):
         Return: (List of Movies) The movies contained in the category.
         """
 
+        if self.__provider is None:
+            return False
+
         return self.__provider.LoadCategoryMovieList(cat)
 
     def LoadMovieInfo(self, movie):
@@ -180,6 +203,9 @@ class HardDrive(object):
         Return: (Boolean) True on success, False on failure.
         """
 
+        if self.__provider is None:
+            return False
+
         return self.__provider.LoadMovieInfo(movie)
 
     def SaveMovieInfo(self, movie):
@@ -188,5 +214,8 @@ class HardDrive(object):
         ---
         Return: (Boolean) True on success, False on failure.
         """
+
+        if self.__provider is None:
+            return False
 
         return self.__provider.SaveMovieInfo(movie)

@@ -96,7 +96,7 @@ class HddSelectorDialog(wx.Dialog):
         self.btnEdit.Bind(wx.EVT_BUTTON, self.OnHddEdit)
         self.btnRefresh.Bind(wx.EVT_BUTTON, self.OnHddRefresh)
 
-        self.btnOk.Bind(wx.EVT_BUTTON, self.OnHddSelectorClose)
+        self.btnOk.Bind(wx.EVT_BUTTON, self.OnHddSelectorOk)
 
         self.ReloadHddList()
 
@@ -237,7 +237,7 @@ class HddSelectorDialog(wx.Dialog):
 
         self.RefreshHddList()
 
-    def OnHddSelectorClose(self, event):
+    def OnHddSelectorOk(self, event):
         """ Saves changes made """
 
         self.__hddList.SaveToConfig()

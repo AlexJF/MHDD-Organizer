@@ -139,7 +139,7 @@ class MovieDetailsPanel(wx.Panel):
         imageData = movie.GetImageData()
 
         if imageData is not None:
-            imageStream = io.BytesIO(imageData)
+            imageStream = io.BytesIO(bytearray(imageData))
             image = wx.ImageFromStream(imageStream)
             self.imgCover.SetImage(image)
         else:

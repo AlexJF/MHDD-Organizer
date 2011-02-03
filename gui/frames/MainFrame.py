@@ -175,6 +175,9 @@ class MainFrame(wx.Frame):
         self.__currentHdd = hdd
         self.__categoryList = self.__currentHdd.GetCategoryList()
 
+        if self.__categoryList is None:
+            return
+
         for category in self.__categoryList:
             self.cmbCat.Append(category.GetName())
 
@@ -190,6 +193,7 @@ class MainFrame(wx.Frame):
             @ cat (Category) - The new active category
         """
 
+        dsbWindow = wx.WindowDisabler()
         self.__currentCategory = cat
         self.__movieList = cat.GetMovieList()
         if self.__movieList is not None:
@@ -197,6 +201,7 @@ class MainFrame(wx.Frame):
         self.PopulateMovieList()
         if self.lstMovie.GetItemCount() > 0:
             self.lstMovie.Select(0)
+        del dsbWindow
 
     def PopulateMovieList(self, condition = None):
         """

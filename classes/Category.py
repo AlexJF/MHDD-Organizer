@@ -43,7 +43,8 @@ class Category(object):
         self.__name = name
         self.__relpath = relpath
         self.__hdd = hdd
-        self.__movieList = None
+        self.__movieList = []
+        self.__loaded = False
 
     # -- Get Properties --
     def GetName(self):
@@ -122,7 +123,7 @@ class Category(object):
         Return (List of Movies): The list of movies under this category.
         """
 
-        if self.__movieList is not None and not refresh:
+        if self.__loaded and not refresh:
             return self.__movieList
 
         self.__hdd.LoadCategoryMovieList(self)
@@ -137,4 +138,8 @@ class Category(object):
             @ movieList (List of Movies) - Movies managed by this category.
         """
 
-        self.__movieList = movieList
+        if movieList is None:
+            self.__movieList = []
+        else:
+            self.__movieList = movieList
+        self.__loaded = True

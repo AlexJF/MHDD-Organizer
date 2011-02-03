@@ -48,6 +48,7 @@ class Movie(object):
         self.__modDate = datetime.fromtimestamp(0)
         self.__title = u""
         self.__imdbID = u""
+        self.__tmdbID = u""
         self.__year = u""
         self.__rating = 0
         self.__genres = []
@@ -151,7 +152,7 @@ class Movie(object):
 
     def GetImageData(self):
         """
-        Return: (Bytes) The image representing this movie.
+        Return: (Buffer) The image representing this movie.
         """
 
         return self.__imageData
@@ -295,7 +296,7 @@ class Movie(object):
         """
 
         self.__dirty = True
-        self.__imageData = bytearray(image)
+        self.__imageData = buffer(image)
 
     # -- Methods --
     def GetInfoDict(self):
@@ -402,7 +403,7 @@ class Movie(object):
         try:
             img = urllib.urlopen(imdbMovieObj['cover url'])
             imgData = img.read()
-            self.__imageData = imgData
+            self.SetImageData(imgData)
         except IOError, e:
             pass
         finally:
@@ -411,6 +412,26 @@ class Movie(object):
 
         self.__dirty = True
 
+    def LoadInfoFromTMDB(self):
+        """
+        Loads the movie info from TMDB.
+        """
+
+        if (self.__tmdbID == ""):
+            return
+
+        mdb = tmdb.MovieDb()
+
+        movieInfo = None
+
+        try:
+            movieInfo = mdb.getMovieInfo(self.__tmdbID)
+        except tmdb.TmdNoResults, e:
+            return
+
+        print movieInfo
+
+        self.__dirty = True
 
 setMethodsDict = dict()
 setMethodsDict['title'] = Movie.SetTitle

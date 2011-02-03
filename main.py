@@ -42,6 +42,9 @@ class MainApp(wx.App):
         h1.setFormatter(f)
         self.__logger.addHandler(h1)
 
+        if "unicode" not in wx.PlatformInfo:
+            self.__logger.warning("wxPython isn't built as unicode")
+
         self.SetAppName("MHDD Organizer")
         self.SetClassName("MHDDOrganizer")
 
@@ -49,6 +52,10 @@ class MainApp(wx.App):
         #wx.Image.AddHandler(wx.JPEGHandler())
         stdPaths = wx.StandardPaths.Get()
         appDataFolder = stdPaths.GetUserLocalDataDir()
+
+        if not os.path.isdir(appDataFolder):
+            os.mkdir(appDataFolder)
+
 
         self.config = wx.FileConfig(localFilename = os.path.join(appDataFolder, "config"),
                                     style = wx.CONFIG_USE_LOCAL_FILE)

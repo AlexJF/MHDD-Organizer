@@ -127,4 +127,4 @@ class CatPropDialog(wx.Dialog):
             self.btnOk.Disable()
             return
 
-        self.__category.SetRelPath(os.path.relpath(newPath, self.__category.GetHdd().GetPath()))
+        self.__category.SetRelativePath(os.path.relpath(newPath, self.__category.GetHdd().GetPath()))
