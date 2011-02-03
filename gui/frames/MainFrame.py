@@ -53,6 +53,7 @@ class MainFrame(wx.Frame):
         self.__categoryList = None
         self.__currentCategory = None
         self.__movieList = None
+        self.__selectedMovie = None
 
         # -- Control Initialization --
         self.mnbMain = wx.MenuBar()
@@ -243,7 +244,7 @@ class MainFrame(wx.Frame):
         """
 
         dlgProgress = wx.ProgressDialog("Getting IMDB info...", "Preparing IMDB Loading.............................", 
-                                        len(self.__movieList), self, wx.PD_AUTO_HIDE | 
+                                        len(movieList), self, wx.PD_AUTO_HIDE | 
                                         wx.PD_CAN_ABORT)
 
         i = 1
@@ -257,6 +258,10 @@ class MainFrame(wx.Frame):
 
             movie.LoadInfoFromIMDB()
             movie.SaveInfoToHdd()
+
+            if movie == self.__selectedMovie:
+                self.pnlMovieDetails.SetMovie(movie)
+
             i += 1
 
     # -- EVENTS --
@@ -312,9 +317,9 @@ class MainFrame(wx.Frame):
 
         selectedIndex = event.GetIndex()
         i = self.lstMovie.GetItemData(selectedIndex)
-        selectedMovie = self.__movieList[i]
+        self.__selectedMovie = self.__movieList[i]
 
-        self.pnlMovieDetails.SetMovie(selectedMovie)
+        self.pnlMovieDetails.SetMovie(self.__selectedMovie)
 
     def OnMovieSearch(self, event):
         """

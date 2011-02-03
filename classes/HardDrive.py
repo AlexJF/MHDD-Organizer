@@ -118,6 +118,15 @@ class HardDrive(object):
         
         self.__provider = provider
 
+    def SetCategoryList(self, catList):
+        """
+        Sets a new category list
+        ---
+            @ catList (List of Categories) - The new category list
+        """
+
+        self.__categoryList = catList
+
     # -- Methods --
     def Connected(self):
         """
@@ -135,12 +144,7 @@ class HardDrive(object):
         Return: (Boolean) True on success, False on failure
         """
 
-        self.__categoryList = self.__provider.LoadCategoryList()
-
-        if self.__categoryList is None:
-            return False
-        else:
-            return True
+        return self.__provider.LoadCategoryList()
 
     def SaveCategoryList(self):
         """

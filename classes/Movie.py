@@ -24,7 +24,7 @@ Copyright (C) 2010 Revolt
 """
 
 import os, urllib
-from datetime import date
+from datetime import datetime
 from imdb import IMDb
 
 class Movie(object):
@@ -45,7 +45,7 @@ class Movie(object):
         self.__name = name
         self.__path = path
         self.__dirty = True
-        self.__modDate = date.fromtimestamp(0)
+        self.__modDate = datetime.fromtimestamp(0)
         self.__title = u""
         self.__imdbID = u""
         self.__year = u""
@@ -55,8 +55,6 @@ class Movie(object):
         self.__directors = []
         self.__actors = []
         self.__imageData = None
-
-        self.LoadInfoFromHdd()
 
     # -- Properties (Get) --
     def GetName(self):
@@ -160,7 +158,11 @@ class Movie(object):
             @ date (datetime) - The new date of modification of the movie.
         """
 
-        self.__modDate = date
+        if isinstance(date, datetime):
+            self.__modDate = date
+        else:
+            timestamp = int(date)
+            self.__modDate = datetime.fromtimestamp(timestamp)
 
     def SetTitle(self, title):
         """
@@ -203,6 +205,12 @@ class Movie(object):
             @ rating (int) - The rating of the movie (between 1 and 10)
         """
 
+        if not isinstance(rating, int):
+            try:
+                rating = int(rating)
+            except ValueError, e:
+                rating = 0
+
         if rating < 1 or rating > 10:
             return
 
@@ -217,8 +225,13 @@ class Movie(object):
             @ genres (List of UStrings) - The genres of the movie.
         """
 
-        self.__dirty = True
-        self.__genres = genres
+        if isinstance(genres, basestring):
+            self.__dirty = True
+            separator = u"||"
+            self.__genres = genres.split(separator)
+        elif isinstance(genres, list):
+            self.__dirty = True
+            self.__genres = genres
 
     def SetPlot(self, plot):
         """
@@ -239,8 +252,13 @@ class Movie(object):
             @ director (List of UStrings) - The directors of the movie.
         """
 
-        self.__dirty = True
-        self.__directors = directors
+        if isinstance(directors, basestring):
+            self.__dirty = True
+            separator = u"||"
+            self.__directors = directors.split(separator)
+        elif isinstance(directors, list):
+            self.__dirty = True
+            self.__directors = directors
 
     def SetActors(self, actors):
         """
@@ -250,8 +268,13 @@ class Movie(object):
             @ actors (List of UStrings) - The actors of the movie.
         """
 
-        self.__dirty = True
-        self.__actors = actors
+        if isinstance(actors, basestring):
+            self.__dirty = True
+            separator = u"||"
+            self.__actors = actors.split(separator)
+        elif isinstance(actors, list):
+            self.__dirty = True
+            self.__actors = actors
 
     def SetImageData(self, image):
         """
@@ -265,6 +288,51 @@ class Movie(object):
         self.__imageData = image
 
     # -- Methods --
+    def GetInfoDict(self):
+        """
+        Return: (Dict) An info dict containing all info of this movie
+                object.
+        """
+
+        global getMethodsDict
+        infoDict = dict()
+
+        for key, value in getMethodsDict.iteritems():
+            infoDict[key] = value(self)
+
+        return infoDict
+
+    def SetInfoFromDict(self, infoDict, dirty = False):
+        """
+        Sets movie info from an info dict.
+        ---
+        Params:
+            @ infodict (Dict) - A dict object containing movie info.
+            @ dirty (Boolean) - Is the dict coming directly from the
+                                provider (thus not dirty) or from another
+                                source (thus dirty).
+        ---
+        Return: (Boolean) True if info was loaded successfully,
+                          False otherwise.
+        """
+
+        global setMethodsDict
+
+        if infoDict is not None:
+            for key, value in infoDict.iteritems():
+                if value is None:
+                    continue
+                try:
+                    function = setMethodsDict[key]
+                    function(self, value)
+                except KeyError, e:
+                    pass
+
+            self.__dirty = dirty
+            return True
+        else:
+            return False
+
     def LoadInfoFromHdd(self):
         """
         Loads movie info from the Hdd.
@@ -276,15 +344,13 @@ class Movie(object):
         if not self.__dirty:
             return True
 
-        if self.__category.GetHdd().LoadMovieInfo(self):
-            self.__dirty = False
-            return True
-        else:
-            return False
+        infoDict = self.__category.GetHdd().LoadMovieInfo(self)
+
+        return self.LoadInfoFromDict(infoDict)
 
     def SaveInfoToHdd(self):
         """
-        Saves movie info to a config file in the dir.
+        Saves movie info to the HDD.
         ---
         Return: (Boolean) True if info was correctly saved or didn't need
                  to be saved, False if there was an error
@@ -335,3 +401,25 @@ class Movie(object):
 
         self.__dirty = True
 
+
+setMethodsDict = dict()
+setMethodsDict['title'] = Movie.SetTitle
+setMethodsDict['imdb'] = Movie.SetIMDBID
+setMethodsDict['year'] = Movie.SetYear
+setMethodsDict['rating'] = Movie.SetRating
+setMethodsDict['plot'] = Movie.SetPlot
+setMethodsDict['genres'] = Movie.SetGenres
+setMethodsDict['directors'] = Movie.SetDirectors
+setMethodsDict['actors'] = Movie.SetActors
+setMethodsDict['image'] = Movie.SetImageData
+
+getMethodsDict = dict()
+getMethodsDict['title'] = Movie.GetTitle
+getMethodsDict['imdb'] = Movie.GetIMDBID
+getMethodsDict['year'] = Movie.GetYear
+getMethodsDict['rating'] = Movie.GetRating
+getMethodsDict['plot'] = Movie.GetPlot
+getMethodsDict['genres'] = Movie.GetGenres
+getMethodsDict['directors'] = Movie.GetDirectors
+getMethodsDict['actors'] = Movie.GetActors
+getMethodsDict['image'] = Movie.GetImageData

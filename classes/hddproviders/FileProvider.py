@@ -47,10 +47,9 @@ class FileProvider(Provider):
     # -- Methods --
     def LoadCategoryList(self):
         """
-        Reads the category list of the HDD and returns it.
+        Reads the category list of the HDD and sets it.
         ---
-        Return: (List of Categories) The categories pertaining to the
-                 hdd associated with this provider.
+        Return: (Boolean) True if load was successful, False otherwise
         """
 
         harddrive = self.GetHdd()
@@ -59,7 +58,7 @@ class FileProvider(Provider):
 
         if not os.path.exists(hddCategoryConfigPath):
             self.__logger.debug("Didn't find categories in the HDD (%s)", self.GetHdd().GetUuid())
-            return None
+            return False
 
         categoryList = []
         hddCategoryConfigFile = None
@@ -76,12 +75,14 @@ class FileProvider(Provider):
             self.__logger.debug("Loaded %d categories from the HDD (%s)", len(categoryList), self.GetHdd().GetUuid())
         except IOError, e:
             self.__logger.exception("Error reading HDD category config file")
-            return None
+            return False
         finally:
             if hddCategoryConfigFile is not None:
                 hddCategoryConfigFile.close()
 
-        return categoryList
+        harddrive.SetCategoryList(categoryList)
+
+        return True
 
 
     def SaveCategoryList(self):
@@ -117,9 +118,9 @@ class FileProvider(Provider):
 
         hddCategoryConfig = ConfigParser.ConfigParser()
 
-        categoryList = self.GetHdd().GetCategoryList()
+        catList = self.GetHdd().GetCategoryList()
 
-        for category in categoryList:
+        for category in catList:
             if not hddCategoryConfig.has_section(category.GetName()):
                 hddCategoryConfig.add_section(category.GetName())
 
@@ -130,7 +131,7 @@ class FileProvider(Provider):
         configFile.close()
 
         self.__logger.debug("Successfully wrote %d categories to the HDD (%s)", 
-                            len(categoryList), self.GetHdd().GetUuid())
+                            len(catList), self.GetHdd().GetUuid())
 
         return True
 
@@ -169,6 +170,7 @@ class FileProvider(Provider):
                     movieName = movieDirRelPath.replace("/", " ")
                     movieName = movieName.replace("\\", " ")
                     movie = Movie(cat, movieName, movieDirRelPath)
+                    self.LoadMovieInfo(movie)
                     movieList.append(movie)
                     break
 
@@ -176,14 +178,14 @@ class FileProvider(Provider):
 
         return movieList
 
-    def LoadMovieInfo(self, movie):
+    def GetMovieInfoDict(self, movie):
         """
-        Loads all info of the provided movie into its object.
+        Gets the info of the provided movie and returns it in a dict.
         ---
         Params:
             @ movie (Movie) - The movie whose info we wish to load.
         ---
-        Return: (Boolean) True if successful, False otherwise.
+        Return: (Dict) A dict containing movie info.
         """
 
         self.__logger.debug("Loading movie '%s' info", movie.GetName()) 
@@ -195,9 +197,10 @@ class FileProvider(Provider):
 
         if not os.path.exists(infoFilePath):
             self.__logger.debug("Movie doesn't have info in the HDD")
-            return False
+            return dict()
 
         infoFile = None
+        infoDict = dict()
 
         try:
             infoFile = codecs.open(infoFilePath, "r", "utf-8")
@@ -209,32 +212,14 @@ class FileProvider(Provider):
 
             for entry in infoEntries:
                 name, value = entry
+                infoDict[name] = value
 
-                if name == "moddate":
-                    movie.SetModificationDate(datetime.fromtimestamp(float(value)))
-                elif name == "title":
-                    movie.SetTitle(value)
-                elif name == "imdb":
-                    movie.SetIMDBID(value)
-                elif name == "year":
-                    movie.SetYear(value)
-                elif name == "rating":
-                    value = int(round(float(value), 0))
-                    movie.SetRating(value)
-                elif name == "genres":
-                    movie.SetGenres(value.split(separator))
-                elif name == "plot":
-                    movie.SetPlot(value)
-                elif name == "directors":
-                    movie.SetDirectors(value.split(separator))
-                elif name == "actors":
-                    movie.SetActors(value.split(separator))
         except IOError, e:
             self.__logger.exception("Error reading info file")
-            return False
+            return None
         except ConfigParser.NoSectionError, e:
             self.__logger.exception("Didn't find info section in info file")
-            return False
+            return None
         finally:
             if infoFile is not None:
                 infoFile.close()
@@ -247,12 +232,11 @@ class FileProvider(Provider):
             try:
                 imageFile = open(imageFilePath, "rb")
                 imageData = imageFile.read()
-                movie.SetImageData(imageData)
+                infoDict['image'] = imageData
             except IOError, e:
                 self.__logger.exception("Error reading cover image")
-                return False
 
-        return True
+        return infoDict
 
     def SaveMovieInfo(self, movie):
         """
@@ -293,15 +277,20 @@ class FileProvider(Provider):
         separator = u"||"
 
         movie.SetModificationDate(datetime.now())
-        movieInfoParser.set(infoSection, "moddate", time.mktime(movie.GetModificationDate().timetuple()))
-        movieInfoParser.set(infoSection, "title", movie.GetTitle().encode("utf-8"))
-        movieInfoParser.set(infoSection, "imdb", movie.GetIMDBID().encode("utf-8"))
-        movieInfoParser.set(infoSection, "year", movie.GetYear().encode("utf-8"))
-        movieInfoParser.set(infoSection, "rating", movie.GetRating())
-        movieInfoParser.set(infoSection, "genres", separator.join(movie.GetGenres()).encode("utf-8"))
-        movieInfoParser.set(infoSection, "plot", movie.GetPlot().encode("utf-8"))
-        movieInfoParser.set(infoSection, "directors", separator.join(movie.GetDirectors()).encode("utf-8"))
-        movieInfoParser.set(infoSection, "actors", separator.join(movie.GetActors()).encode("utf-8"))
+
+        infoDict = movie.GetInfoDict()
+        imageData = infoDict['image']
+        del infoDict['image']
+
+        for key, value in infoDict.iteritems():
+            if isinstance(value, unicode):
+                value = value.encode("utf-8")
+            elif isinstance(value, list):
+                value = separator.join(value).encode("utf-8")
+            elif isinstance(value, datetime):
+                value = time.mktime(value.timetuple())
+
+            movieInfoParser.set(infoSection, key, value)
 
         movieInfoParser.write(infoFile)
 

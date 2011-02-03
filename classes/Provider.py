@@ -56,9 +56,13 @@ class Provider(object):
 
         raise NotImplementedError()
 
-    def SaveCategoryList(self):
+    def SaveCategoryList(self, catList = None):
         """
         Saves category list of the associated hdd.
+        ---
+        Params:
+            @ catList (List of Categories) - A list of categories to save.
+              Should catList be None, the provider gets the list from the HDD.
         ---
         Return: (Boolean) True on success, False otherwise
         """
@@ -77,9 +81,21 @@ class Provider(object):
         
         raise NotImplementedError()
 
+    def GetMovieInfoDict(self, movie):
+        """
+        Gets the info of the provided movie and returns it in a dict.
+        ---
+        Params:
+            @ movie (Movie) - The movie whose info we wish to load.
+        ---
+        Return: (Dict) A dict containing movie info.
+        """
+
+        raise NotImplementedError()
+
     def LoadMovieInfo(self, movie):
         """
-        Loads info from a single movie and returns it.
+        Loads info from a single movie and sets it to the movie object.
         ---
         Params:
             @ movie (Movie) - The movie whose info we wish to load.
@@ -87,7 +103,8 @@ class Provider(object):
         Return: (Boolean) True on success, False otherwise
         """
 
-        raise NotImplementedError()
+        return movie.SetInfoFromDict(self.GetMovieInfoDict(movie))
+
 
     def SaveMovieInfo(self, movie):
         """
