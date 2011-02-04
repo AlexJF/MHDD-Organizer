@@ -3,7 +3,7 @@ ABOUT
     MHDD Organizer aims to be an application which helps users manage
     their multimedia harddrives by parsing the entire directory tree
     and building a virtual database of all the movies in the disk,
-    along with their IMDB or custom infos.
+    along with their TMDB (www.tmdb.org) or custom infos.
 
     This database may be cached locally so that changes and searches
     can be made without the HDD present and, when connected, those
@@ -15,7 +15,6 @@ USING
     MHDD Organizer is programmed in Python 2.7 and has the following
     dependencies:
       - wxPython
-      - IMDbPY
       - SQLite3 (python bindings)
 
     To launch the application run:
