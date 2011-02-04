@@ -1,11 +1,11 @@
 """
-File: TMDBSearchResultDialog.py
+File: TMDBIDSelector.py
 Author: Revolt
 --------------------------
 Desc:
     This file contains the definition and implementation of the dialog
-    that allows the user to choose which TMDB title from the results
-    gathered in the TMDB search matches the selected movie object.
+    that allows the user select a new custom TMDB ID based on a search
+    by a string.
 --------------------------
 Copyright (C) 2010 Revolt 
 
@@ -28,40 +28,31 @@ import wx, logging
 from common import GetResultTitle, GetResultID
 from classes.infoproviders import tmdb
 
-class TMDBSearchResultDialog(wx.Dialog):
-    """ The TMDBSearchResultDialog class """
+class TMDBIDSelector(wx.Dialog):
+    """ The TMDBIDSelector class """
 
-    def __init__(self, parent, movieName, resultList, selectedIndex = -1):
+    def __init__(self, parent):
         """
         Constructor 
-        ---
-        Params:
-            @ movieName (String) - The name of the movie whose TMDB title
-                                   we wish to select.
-            @ resultList (List of Strings) - The list of results retrieved
-                                   from the TMDB search.
-            @ selectedIndex (int) - The index of the result corrently
-                                    associated with the movie.
         """
 
         # -- Private Variables Initialization --
         self.__logger = logging.getLogger("main")
-        self.__resultList = resultList
-        self.__selectedIndex = selectedIndex
+        self.__resultList = []
 
         # -- Panel Initialization --
-        wx.Dialog.__init__(self, parent, wx.ID_ANY, "Select title for '" + movieName + "'")
+        wx.Dialog.__init__(self, parent, wx.ID_ANY, "Search for an ID")
 
         # -- Control Initialization --
         self.szrBaseVert = wx.BoxSizer(wx.VERTICAL)
         self.szrSearchHoriz = wx.BoxSizer(wx.HORIZONTAL)
         self.szrListHoriz = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.lblSearch = wx.StaticText(self, wx.ID_ANY, "New Search:")
-        self.txtSearch = wx.TextCtrl(self, wx.ID_ANY, value = movieName, style = wx.TE_PROCESS_ENTER)
+        self.lblSearch = wx.StaticText(self, wx.ID_ANY, "Search:")
+        self.txtSearch = wx.TextCtrl(self, wx.ID_ANY)
 
-        self.szrSearchHoriz.Add(self.lblSearch, 0, wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
-        self.szrSearchHoriz.Add(self.txtSearch, 1, wx.EXPAND | wx.ALL | wx.ALIGN_CENTER_VERTICAL, 5)
+        self.szrSearchHoriz.Add(self.lblSearch, 0, wx.ALL, 5)
+        self.szrSearchHoriz.Add(self.txtSearch, 1, wx.ALL | wx.EXPAND, 5)
 
         self.lstTitles = wx.ListView(self, style = wx.LC_REPORT | wx.LC_SINGLE_SEL | wx.LC_SORT_ASCENDING | wx.SUNKEN_BORDER, size=(360, 200))
         self.lstTitles.InsertColumn(0, "Title")
@@ -71,19 +62,27 @@ class TMDBSearchResultDialog(wx.Dialog):
 
         self.szrListHoriz.Add(self.lstTitles, 1, wx.EXPAND | wx.ALL, 5)
 
+        self.szrCustomHoriz = wx.BoxSizer(wx.HORIZONTAL)
+        self.szrCustomHoriz.Add(self.radCustom, 0, wx.ALL, 5)
+        self.szrCustomHoriz.Add(self.txtCustom, 1, wx.ALL, 5)
+
         self.szrDialogButtons = self.CreateButtonSizer(wx.OK | wx.CANCEL)
         self.btnOk = self.FindWindowById(wx.ID_OK)
         self.btnCancel = self.FindWindowById(wx.ID_CANCEL)
 
-        self.szrBaseVert.Add(self.szrSearchHoriz, 0, wx.ALL | wx.EXPAND, 5)
+        self.szrBaseVert.Add(self.radResults, 0, wx.ALL, 5)
         self.szrBaseVert.Add(self.szrListHoriz, 1, wx.EXPAND | wx.ALL, 5)
+        self.szrBaseVert.Add(self.szrCustomHoriz, 0, wx.EXPAND | wx.ALL, 5)
         self.szrBaseVert.Add(self.szrDialogButtons, 0, wx.EXPAND | wx.ALL, 5)
 
         self.SetSizerAndFit(self.szrBaseVert)
 
         # -- Event Binding
         self.lstTitles.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnListItemSelected)
-        self.txtSearch.Bind(wx.EVT_TEXT_ENTER, self.OnSearchEnter)
+        self.radResults.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonResultsClick)
+        self.radCustom.Bind(wx.EVT_RADIOBUTTON, self.OnRadioButtonCustomClick)
+
+        self.btnOk.Bind(wx.EVT_BUTTON, self.OnOk)
 
         self.PopulateList()
 
@@ -93,40 +92,45 @@ class TMDBSearchResultDialog(wx.Dialog):
         """ 
         Populates the title list with the titles in the resultList.
         """
-
-        self.lstTitles.DeleteAllItems()
-
-        found = False
         
+        self.SetInputResults()
+
         for result in self.__resultList:
             index = self.lstTitles.InsertStringItem(self.lstTitles.GetItemCount(), GetResultTitle(result))
             self.lstTitles.SetStringItem(index, 1, GetResultID(result))
 
             if index == self.__selectedIndex:
-                found = True
                 self.lstTitles.Select(index)
+        else:
+            self.SetInputCustom()
 
-        index = self.lstTitles.InsertStringItem(self.lstTitles.GetItemCount(), "None")
 
-        if not found:
-            self.lstTitles.Select(index)
+    def SetInputResults(self):
+        """
+        Enables the result listview and selects the results radiobox while
+        disabling the custom textbox and radiobutton.
+        """
+
+        self.radResults.SetValue(True)
+        self.lstTitles.Enable()
+        self.txtCustom.Disable()
+
+    def SetInputCustom(self):
+        """
+        Enables the custom textbox and radiobox while disabling the results
+        listview and radiobutton.
+        """
+
+        self.radCustom.SetValue(True)
+        self.lstTitles.Disable()
+        self.txtCustom.Enable()
 
     def GetSelectedIndex(self):
         """
         Return: (int) The index of the selection.
         """
 
-        if self.__selectedIndex >= len(self.__resultList):
-            return -1
-        else:
-            return self.__selectedIndex
-
-    def GetResultList(self):
-        """
-        Return: (List of Results) The current list of results.
-        """
-
-        return self.__resultList
+        return self.__selectedIndex
 
     # -- EVENTS --
     def OnListItemSelected(self, event):
@@ -136,13 +140,37 @@ class TMDBSearchResultDialog(wx.Dialog):
 
         self.__selectedIndex = event.GetIndex()
 
-    def OnSearchEnter(self, event):
+    def OnOk(self, event):
         """
-        Handles a return in the search textbox.
+        Handles a click on the OK button.
         """
 
-        searchStr = self.txtSearch.GetValue()
+        if self.radCustom.GetValue():
+            # If radiobutton 'Custom' is selected, add the title
+            # to the result list and set it as selected.
 
-        mdb = tmdb.MovieDb()
-        self.__resultList = mdb.search(searchStr)
-        self.PopulateList()
+            tmdbId = self.txtCustom.GetValue()
+
+            mdb = tmdb.MovieDb()
+
+            movieInfo = mdb.getMovieInfo(tmdbId)
+
+            if movieInfo is not None:
+                self.__resultList.append(movieInfo)
+                self.__selectedIndex = len(self.__resultList) - 1
+
+        event.Skip()
+
+    def OnRadioButtonResultsClick(self, event):
+        """
+        Handles a click on the 'Results' radiobutton.
+        """
+
+        self.SetInputResults()
+
+    def OnRadioButtonCustomClick(self, event):
+        """
+        Handles a click on the 'Custom' radiobutton.
+        """
+
+        self.SetInputCustom()

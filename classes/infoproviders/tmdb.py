@@ -235,9 +235,9 @@ class Person(dict):
 
     def __repr__(self):
         if self['character'] is None or self['character'] == "":
-            return "<%(job)s (id %(id)s): %(name)s>" % self
+            return u"<%(job)s (id %(id)s): %(name)s>" % self
         else:
-            return "<%(job)s (id %(id)s): %(name)s (as %(character)s)>" % self
+            return u"<%(job)s (id %(id)s): %(name)s (as %(character)s)>" % self
 
 class MovieDb:
     """Main interface to www.themoviedb.com

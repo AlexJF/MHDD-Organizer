@@ -25,7 +25,7 @@ Copyright (C) 2010 Revolt
 """
 
 
-import wx
+import wx, logging
 
 class ImageViewer(wx.Control):
     """ The ImageViewer class """
@@ -96,9 +96,7 @@ class ImageViewer(wx.Control):
         (controlW, controlH) = self.GetSize()
 
         if imageW > controlW or imageH > controlH:
-            newImageW = newImageH = 0
-
-            ratio = imageW / imageH
+            ratio = float(imageW) / imageH
 
             if imageW > imageH:
                 imageW = controlW

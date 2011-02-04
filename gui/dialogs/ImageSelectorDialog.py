@@ -46,6 +46,7 @@ class ImageSelectorDialog(wx.Dialog):
 
         # -- Panel Initialization --
         wx.Dialog.__init__(self, parent, wx.ID_ANY, "Image Selector", style = wx.RESIZE_BORDER)
+        self.SetMaxSize((600, 800))
         
         # -- Control Initialization --
         self.szrBaseVert = wx.BoxSizer(wx.VERTICAL)
@@ -56,8 +57,7 @@ class ImageSelectorDialog(wx.Dialog):
 
         self.szrImageHoriz = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.imgView = ImageViewer(self, wx.ID_ANY, image)
-        self.imgView.SetMinSize((100, 140))
+        self.imgView = ImageViewer(self, wx.ID_ANY, image, size=(280, 200))
         self.szrImageHoriz.Add(self.imgView, 1, wx.EXPAND | wx.ALL, 5)
 
         self.szrDialogButtons = self.CreateButtonSizer(wx.OK | wx.CANCEL)
@@ -113,8 +113,9 @@ class ImageSelectorDialog(wx.Dialog):
         Handle left click on the image viewer.
         """
 
-        imageWildcard = "BMP files|*.bmp|JPG files|*.jpg;*.jpeg\
-                         PNG files|*.png"
+        imageWildcard = "All image files|*.bmp;*.jpg;*.jpeg;*.png|" + \
+                        "BMP files|*.bmp|JPG files|*.jpg;*.jpeg|" + \
+                        "PNG files|*.png"
 
         fileChooser = wx.FileDialog(self, "Choose an image", 
                                     defaultFile = self.__imagePath,

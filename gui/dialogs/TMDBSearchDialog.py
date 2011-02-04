@@ -26,6 +26,7 @@ Copyright (C) 2010 Revolt
 
 import wx, logging
 from classes.infoproviders import tmdb
+from common import GetResultTitle, GetResultID
 from TMDBSearchResultDialog import *
 
 class TMDBSearchDialog(wx.Dialog):
@@ -119,8 +120,8 @@ class TMDBSearchDialog(wx.Dialog):
                     resultIndex = -1
                     resultTitle = "No title found"
                 else:
-                    resultTitle = results[0]['name']
-                    resultID = results[0]['id']
+                    resultTitle = GetResultTitle(results[0])
+                    resultID = GetResultID(results[0])
             else:
                 found = False
                 j = 0
@@ -128,8 +129,8 @@ class TMDBSearchDialog(wx.Dialog):
                 for result in results:
                     if result['id'] == tmdbID:
                         resultIndex = j
-                        resultTitle = result['name']
-                        resultID = result['id']
+                        resultTitle = GetResultTitle(result)
+                        resultID = GetResultID(result)
                         found = True
                         break
                     j += 1
@@ -139,8 +140,8 @@ class TMDBSearchDialog(wx.Dialog):
                     newResult = mdb.getMovieInfo(tmdbID)
                     results.append(newResult)
                     resultIndex = len(results) - 1
-                    resultTitle = newResult['name']
-                    resultID = newResult['id']
+                    resultTitle = GetResultTitle(newResult)
+                    resultID = GetResultID(newResult)
 
             self.__logger.debug(movie.GetName() + " - " + str(resultIndex) + ", " + resultTitle + ", " + resultID)
 
@@ -162,21 +163,22 @@ class TMDBSearchDialog(wx.Dialog):
         results = self.__resultCache[selectedIndex]
         currentResultIndex = self.lstResults.GetItemData(selectedIndex)
 
-        # If there are no results to select, there's no point in showing the dialog
-        if len(results) == 0:
-            return
-
         dlgSearchResultSelect = TMDBSearchResultDialog(self, movie.GetName(), results, currentResultIndex)
 
         if dlgSearchResultSelect.ShowModal() == wx.ID_OK:
             currentResultIndex = dlgSearchResultSelect.GetSelectedIndex()
+            currentResultList = dlgSearchResultSelect.GetResultList()
 
-            selectedResult = results[currentResultIndex]
-
+            self.__resultCache[selectedIndex] = currentResultList
             self.lstResults.SetItemData(selectedIndex, currentResultIndex)
-            self.lstResults.SetStringItem(selectedIndex, 1, selectedResult['name'])
-            self.lstResults.SetStringItem(selectedIndex, 2, selectedResult['id'])
 
+            if currentResultIndex != -1:
+                selectedResult = currentResultList[currentResultIndex]
+                self.lstResults.SetStringItem(selectedIndex, 1, GetResultTitle(selectedResult))
+                self.lstResults.SetStringItem(selectedIndex, 2, GetResultID(selectedResult))
+            else:
+                self.lstResults.SetStringItem(selectedIndex, 1, "None")
+                self.lstResults.SetStringItem(selectedIndex, 2, "")
 
     def OnButtonOkClick(self, event):
         """
@@ -194,7 +196,7 @@ class TMDBSearchDialog(wx.Dialog):
             
             selectedResult = results[selectedResultIndex]
 
-            movie.SetTMDBID(selectedResult['id'])
+            movie.SetTMDBID(GetResultID(selectedResult))
 
             index += 1
 

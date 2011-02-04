@@ -159,7 +159,11 @@ class MovieDetailsPanel(wx.Panel):
         self.__currentMovie.SetPlot(self.txtPlot.GetValue())
         self.__currentMovie.SetDirectors(self.txtDirectors.GetValue().split(", "))
         self.__currentMovie.SetActors(self.txtActors.GetValue().split(", "))
-
+        image = self.imgCover.GetImage()
+        imageStream = io.BytesIO()
+        if image is not None and image != self.__defImage:
+            if image.SaveStream(imageStream, wx.BITMAP_TYPE_JPEG):
+                self.__currentMovie.SetImageData(imageStream.getvalue())
         self.__currentMovie.SaveInfoToHdd()
 
 
@@ -193,5 +197,5 @@ class MovieDetailsPanel(wx.Panel):
         tmdbID = self.txtTMDB.GetValue()
         
         if not tmdbID.isspace():
-            tmdbURL = "http://www.tmdb.com/movie/" + imdbID
+            tmdbURL = "http://www.tmdb.org/movie/" + tmdbID
             wx.LaunchDefaultBrowser(tmdbURL)

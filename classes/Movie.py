@@ -21,7 +21,7 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os, urllib
+import os, urllib, logging
 from datetime import datetime
 from infoproviders import tmdb
 
@@ -47,7 +47,7 @@ class Movie(object):
         self.__title = u""
         self.__imdbID = u""
         self.__tmdbID = u""
-        self.__year = u""
+        self.__reldate = u""
         self.__rating = 0
         self.__genres = []
         self.__plot = u""
@@ -427,7 +427,45 @@ class Movie(object):
         except tmdb.TmdNoResults, e:
             return
 
-        print movieInfo.keys()
+        self.SetTitle(movieInfo['name'])
+        self.SetRating(movieInfo['rating'])
+        self.SetPlot(movieInfo['overview'])
+        self.SetYear(movieInfo['released'][0:4])
+        genres = []
+        try:
+            for genre in movieInfo['categories']['genre'].keys():
+                genres.append(genre)
+        except KeyError, e:
+            pass
+        self.SetGenres(genres)
+        directors = []
+        try:
+            for director in movieInfo['cast']['director']:
+                directors.append(director['name'])
+        except KeyError, e:
+            pass
+        self.SetDirectors(directors)
+        actors = []
+        try:
+            for actor in movieInfo['cast']['actor']:
+                actors.append(actor['name'])
+        except KeyError, e:
+            pass
+        self.SetActors(actors)
+
+        img = None
+
+        try:
+            img = urllib.urlopen(movieInfo['images'][0]['cover'])
+            imgData = img.read()
+            self.SetImageData(imgData)
+        except KeyError, e:
+            pass
+        except IOError, e:
+            pass
+        finally:
+            if img is not None:
+                img.close()
 
         self.__dirty = True
 
