@@ -47,7 +47,7 @@ class Movie(object):
         self.__title = u""
         self.__imdbID = u""
         self.__tmdbID = u""
-        self.__reldate = u""
+        self.__year = u""
         self.__rating = 0
         self.__genres = []
         self.__plot = u""
