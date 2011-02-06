@@ -102,8 +102,13 @@ class TMDBSearchDialog(wx.Dialog):
                 dlgProgress.Show(False)
                 return
 
-            results = mdb.search(movie.GetName())
-            self.__resultCache.append(results)
+            results = []
+
+            try:
+                results = mdb.search(movie.GetName())
+                self.__resultCache.append(results)
+            except tmdb.TmdXmlError, e:
+                self.__logger.exception("Failed to perform TMDB search.")
 
             self.__logger.debug("Found %d results for '%s'", len(results), movie.GetName())
 
@@ -190,6 +195,7 @@ class TMDBSearchDialog(wx.Dialog):
         for results in self.__resultCache:
             movie = self.__movieList[index]
             selectedResultIndex = self.lstResults.GetItemData(index)
+            index += 1
 
             if selectedResultIndex == -1:
                 continue
@@ -197,7 +203,5 @@ class TMDBSearchDialog(wx.Dialog):
             selectedResult = results[selectedResultIndex]
 
             movie.SetTMDBID(GetResultID(selectedResult))
-
-            index += 1
 
         event.Skip()

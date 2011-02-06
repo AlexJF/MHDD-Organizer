@@ -29,7 +29,14 @@ def GetResultTitle(result):
     """
 
     title = result['name']
-    year = result['released'][0:4]
+    year = ""
+
+    try:
+        year = result['released'][0:4]
+    except KeyError, e:
+        pass
+    except TypeError, e:
+        pass
 
     if not year == "" and not year.isspace():
         title += " (" + year + ")"

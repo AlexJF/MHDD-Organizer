@@ -144,5 +144,9 @@ class TMDBSearchResultDialog(wx.Dialog):
         searchStr = self.txtSearch.GetValue()
 
         mdb = tmdb.MovieDb()
-        self.__resultList = mdb.search(searchStr)
+        self.__resultList = []
+        try:
+            self.__resultList = mdb.search(searchStr)
+        except tmdb.TmdXmlError, e:
+            self.__logger.exception("Failed to perform TMDB search.")
         self.PopulateList()
