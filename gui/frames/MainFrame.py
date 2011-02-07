@@ -26,6 +26,7 @@ Copyright (C) 2010 Revolt
 
 
 import wx, os
+from appinfo import *
 from operator import methodcaller
 from gui.panels.MovieDetailsPanel import *
 from gui.dialogs.HddSelectorDialog import *
@@ -69,12 +70,12 @@ class MainFrame(wx.Frame):
 
         self.mnuTools = wx.Menu()
         imdbMenuItem = self.mnuTools.AppendMenu(self.ID_TMDB, "TMDB", self.mnuTMDB)
-        self.mnuTools.AppendSeparator()
-        self.mnuTools.Append(wx.ID_PREFERENCES, "Preferences")
+        #self.mnuTools.AppendSeparator()
+        #self.mnuTools.Append(wx.ID_PREFERENCES, "Preferences")
 
         self.mnuHelp = wx.Menu()
-        self.mnuHelp.Append(wx.ID_HELP, "Help")
-        self.mnuHelp.AppendSeparator()
+        #self.mnuHelp.Append(wx.ID_HELP, "Help")
+        #self.mnuHelp.AppendSeparator()
         self.mnuHelp.Append(wx.ID_ABOUT, "About")
 
         self.mnbMain.Append(self.mnuMain, "&Main")
@@ -139,15 +140,19 @@ class MainFrame(wx.Frame):
         self.Layout()
 
         # -- Event Binding -- 
+        self.Bind(wx.EVT_MENU, self.OnMenuSelectExit, id = wx.ID_EXIT)
         self.Bind(wx.EVT_MENU, self.OnMenuSelectHardDrive, id = wx.ID_OPEN)
         self.Bind(wx.EVT_MENU, self.OnMenuSelectTMDBSearch, id = self.ID_TMDB_SEARCHNEW)
         self.Bind(wx.EVT_MENU, self.OnMenuSelectTMDBRefresh, id = self.ID_TMDB_REFRESH)
+        self.Bind(wx.EVT_MENU, self.OnMovieListRefresh, id = wx.ID_REFRESH)
         self.Bind(wx.EVT_MENU, self.OnAbout, id = wx.ID_ABOUT)
 
         self.txtSearch.Bind(wx.EVT_TEXT_ENTER, self.OnMovieSearch)
         self.cmbCat.Bind(wx.EVT_COMBOBOX, self.OnCatChanged)
         self.lstMovie.Bind(wx.EVT_SIZE, self.OnMovieListResize)
         self.lstMovie.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnMovieListItemSelect)
+
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
 
 
     def SelectHDD(self):
@@ -193,17 +198,8 @@ class MainFrame(wx.Frame):
             @ cat (Category) - The new active category
         """
 
-        dsbWindow = wx.WindowDisabler()
-        infBusy = wx.BusyInfo("Please wait...", self)
         self.__currentCategory = cat
-        self.__movieList = cat.GetMovieList()
-        if self.__movieList is not None:
-            self.__movieList.sort(key = methodcaller("GetName"))
-        self.PopulateMovieList()
-        if self.lstMovie.GetItemCount() > 0:
-            self.lstMovie.Select(0)
-        del infBusy
-        del dsbWindow
+        self.RefreshMovieList()
 
     def PopulateMovieList(self, condition = None):
         """
@@ -226,6 +222,24 @@ class MainFrame(wx.Frame):
                 self.lstMovie.SetItemData(index, i)
 
             i += 1
+
+    def RefreshMovieList(self):
+        """
+        (Re)reads the movie list from the HDD (or cache) and updates the listview.
+        """
+
+        dsbWindow = wx.WindowDisabler()
+        infBusy = wx.BusyInfo("Please wait...", self)
+        self.__movieList = self.__currentCategory.GetMovieList()
+        if self.__movieList is not None:
+            self.__movieList.sort(key = methodcaller("GetName"))
+
+        print self.__movieList
+        self.PopulateMovieList()
+        if self.lstMovie.GetItemCount() > 0:
+            self.lstMovie.Select(0)
+        del infBusy
+        del dsbWindow
 
     def ShowTMDBDialog(self, movieList):
         """
@@ -299,6 +313,13 @@ class MainFrame(wx.Frame):
 
         self.RefreshTMDBInfo(self.__movieList)
 
+    def OnMenuSelectExit(self, event):
+        """
+        This method is called when the user clicks the exit menu entry.
+        """
+
+        self.Close()
+
     def OnCatChanged(self, event):
         """ 
         This method is called when a user selects a new category in the combobox.
@@ -345,11 +366,40 @@ class MainFrame(wx.Frame):
 
         self.PopulateMovieList(nameFilter)
 
+    def OnMovieListRefresh(self, event):
+        """
+        This method is called when the user clicks the refresh movie list button.
+        """
+
+        self.RefreshMovieList()
+
     def OnAbout(self, event):
         """
         This method is called when the user clicks the about button.
         """
+        
+        global appInfo
+        aboutInfo = wx.AboutDialogInfo()
 
-        pass
+        aboutInfo.SetName(appInfo['name'])
+        aboutInfo.SetVersion(appInfo['version'])
+        aboutInfo.SetDescription(appInfo['description'])
+        aboutInfo.SetCopyright(appInfo['copyright'])
+        aboutInfo.SetLicense(appInfo['license'])
+        aboutInfo.SetDevelopers(appInfo['developers'])
 
+        wx.AboutBox(aboutInfo)
+
+    def OnClose(self, event):
+        """
+        This method is called when the user wants to close the mainframe.
+        """
+
+        del self.__selectedMovie
+        del self.__currentCategory
+        del self.__categoryList
+        del self.__currentHdd
+        del self.__movieList
+
+        self.Destroy()
 

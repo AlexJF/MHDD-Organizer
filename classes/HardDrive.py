@@ -58,6 +58,13 @@ class HardDrive(object):
 
         self.__logger.debug("Initialized new Harddrive: %s - %s - %s - %s", hdduuid, label, path, self.__provider)
 
+    def __del__():
+        """
+        Destructor
+        """
+
+        del self.__provider
+
     # -- Get Properties --
     def GetUuid(self):
         """

@@ -124,6 +124,10 @@ class DBFileSyncProvider(Provider):
                         movieList.append(hddMovie)
                         # Update the info in the DB right now
                         self.__dbProvider.SaveMovieInfo(hddMovie)
+                    else:
+                        # If both have the same modification date then just return one of
+                        # them
+                        movieList.append(dbMovie)
 
                     dbMovieList.pop(j)
                     break

@@ -77,8 +77,8 @@ class MovieDetailsPanel(wx.Panel):
         self.lblDirectors = wx.StaticText(self, label="Director:")
         self.txtDirectors = wx.TextCtrl(self)
 
-        self.lblPlot = wx.StaticText(self, label="Plot:")
-        self.txtPlot = wx.TextCtrl(self, style=wx.TE_MULTILINE)
+        self.lblOverview = wx.StaticText(self, label="Overview:")
+        self.txtOverview = wx.TextCtrl(self, style=wx.TE_MULTILINE)
 
         self.lblActors = wx.StaticText(self, label="Actors:")
         self.txtActors = wx.TextCtrl(self, style=wx.TE_MULTILINE)
@@ -99,8 +99,8 @@ class MovieDetailsPanel(wx.Panel):
         self.szrGrid.Add(self.txtGenres, (4, 1), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
         self.szrGrid.Add(self.lblDirectors, (5, 0), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3) 
         self.szrGrid.Add(self.txtDirectors, (5, 1), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
-        self.szrGrid.Add(self.lblPlot, (6, 0), (1, 2), wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_VERTICAL, 3) 
-        self.szrGrid.Add(self.txtPlot, (7, 0), (1, 4), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
+        self.szrGrid.Add(self.lblOverview, (6, 0), (1, 2), wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_VERTICAL, 3) 
+        self.szrGrid.Add(self.txtOverview, (7, 0), (1, 4), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
         self.szrGrid.Add(self.lblActors, (8, 0), (1, 1), wx.LEFT | wx.RIGHT | wx.TOP | wx.ALIGN_CENTER_VERTICAL, 3) 
         self.szrGrid.Add(self.txtActors, (9, 0), (1, 4), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
         self.szrGrid.Add(self.szrButtons, (10, 0), (1, 4), wx.ALL | wx.ALIGN_CENTER, 3)
@@ -132,7 +132,7 @@ class MovieDetailsPanel(wx.Panel):
         self.spnRating.SetValue(movie.GetRating())
         separator = u", "
         self.txtGenres.SetValue(separator.join(movie.GetGenres()))
-        self.txtPlot.SetValue(movie.GetPlot())
+        self.txtOverview.SetValue(movie.GetOverview())
         self.txtDirectors.SetValue(separator.join(movie.GetDirectors()))
         self.txtActors.SetValue(separator.join(movie.GetActors()))
 
@@ -156,7 +156,7 @@ class MovieDetailsPanel(wx.Panel):
         self.__currentMovie.SetYear(self.txtRelYear.GetValue())
         self.__currentMovie.SetRating(self.spnRating.GetValue())
         self.__currentMovie.SetGenres(self.txtGenres.GetValue().split(", "))
-        self.__currentMovie.SetPlot(self.txtPlot.GetValue())
+        self.__currentMovie.SetOverview(self.txtOverview.GetValue())
         self.__currentMovie.SetDirectors(self.txtDirectors.GetValue().split(", "))
         self.__currentMovie.SetActors(self.txtActors.GetValue().split(", "))
         image = self.imgCover.GetImage()
