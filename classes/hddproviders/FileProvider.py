@@ -278,8 +278,6 @@ class FileProvider(Provider):
 
         separator = u"||"
 
-        movie.SetModificationDate(datetime.now())
-
         infoDict = movie.GetInfoDict()
         imageData = infoDict['image']
         del infoDict['image']

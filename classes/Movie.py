@@ -50,7 +50,7 @@ class Movie(object):
         self.__year = u""
         self.__rating = 0
         self.__genres = []
-        self.__plot = u""
+        self.__overview = u""
         self.__directors = []
         self.__actors = []
         self.__imageData = None
@@ -127,12 +127,12 @@ class Movie(object):
 
         return self.__genres
 
-    def GetPlot(self):
+    def GetOverview(self):
         """
-        Return: (UString) The plot of the movie.
+        Return: (UString) The overview of the movie.
         """
         
-        return self.__plot
+        return self.__overview
 
     def GetDirectors(self):
         """
@@ -242,16 +242,16 @@ class Movie(object):
             self.__dirty = True
             self.__genres = genres
 
-    def SetPlot(self, plot):
+    def SetOverview(self, overview):
         """
-        Sets the plot of the movie.
+        Sets the overview of the movie.
         ---
         Params:
-            @ plot (UString) - The plot of the movie.
+            @ overview (UString) - The overview of the movie.
         """
         
         self.__dirty = True
-        self.__plot = plot
+        self.__overview = overview
 
     def SetDirectors(self, directors):
         """
@@ -366,6 +366,7 @@ class Movie(object):
         """
 
         if self.__dirty:
+            movie.SetModificationDate(datetime.now())
             return self.__category.GetHdd().SaveMovieInfo(self)
         else:
             return True
@@ -386,7 +387,7 @@ class Movie(object):
         self.__year = unicode(imdbMovieObj['year'])
         self.__rating = int(round(float(imdbMovieObj['rating']), 0))
         self.__genres = imdbMovieObj['genres']
-        self.__plot = imdbMovieObj['plot'][0]
+        self.__overview = imdbMovieObj['overview'][0]
         
         self.__directors = []
         for director in imdbMovieObj['director']:
@@ -429,7 +430,7 @@ class Movie(object):
 
         self.SetTitle(movieInfo['name'])
         self.SetRating(movieInfo['rating'])
-        self.SetPlot(movieInfo['overview'])
+        self.SetOverview(movieInfo['overview'])
         self.SetYear(movieInfo['released'][0:4])
         genres = []
         try:
@@ -474,7 +475,7 @@ setMethodsDict['title'] = Movie.SetTitle
 setMethodsDict['tmdb'] = Movie.SetTMDBID
 setMethodsDict['year'] = Movie.SetYear
 setMethodsDict['rating'] = Movie.SetRating
-setMethodsDict['plot'] = Movie.SetPlot
+setMethodsDict['overview'] = Movie.SetOverview
 setMethodsDict['genres'] = Movie.SetGenres
 setMethodsDict['directors'] = Movie.SetDirectors
 setMethodsDict['actors'] = Movie.SetActors
@@ -486,7 +487,7 @@ getMethodsDict['title'] = Movie.GetTitle
 getMethodsDict['tmdb'] = Movie.GetTMDBID
 getMethodsDict['year'] = Movie.GetYear
 getMethodsDict['rating'] = Movie.GetRating
-getMethodsDict['plot'] = Movie.GetPlot
+getMethodsDict['overview'] = Movie.GetOverview
 getMethodsDict['genres'] = Movie.GetGenres
 getMethodsDict['directors'] = Movie.GetDirectors
 getMethodsDict['actors'] = Movie.GetActors

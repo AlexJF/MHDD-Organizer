@@ -119,7 +119,7 @@ class DBFileSyncProvider(Provider):
                         movieList.append(dbMovie)
                         # Update the info in the HDD right now
                         self.__fileProvider.SaveMovieInfo(dbMovie)
-                    else:
+                    elif dbMovie.GetModificationDate() < hddMovie.GetModificationDate():
                         # Else the HDD info is more recent than the info in the DB
                         movieList.append(hddMovie)
                         # Update the info in the DB right now
