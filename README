@@ -10,14 +10,28 @@ ABOUT
     changes should sync with the information in the hard drive disk.
 
 
-USING
+DEPENDENCIES
     
     MHDD Organizer is programmed in Python 2.7 and has the following
     dependencies:
       - wxPython
       - SQLite3 (python bindings)
 
+USING (FROM SOURCE)
     To launch the application run:
     $ python main.py
-    In the application's root directory
-    (Atleast until I package it properly ;p)
+    In the source's root directory
+
+USING (FROM DIST BIN)
+    To launch the application run:
+    $ MHDDOrganizer
+    In the dist bin directory
+
+BUILDING DIST BIN
+    To build a binary file containing the application in a contained
+    environment, you must ensure that you can run the application
+    correctly from source. 
+    You need to install cx_Freeze and then run:
+    $ python setup.py build
+    
+    This will create a build/exe.OS-PYTHONVERSION
