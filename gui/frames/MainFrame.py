@@ -230,7 +230,7 @@ class MainFrame(wx.Frame):
 
         dsbWindow = wx.WindowDisabler()
         infBusy = wx.BusyInfo("Please wait...", self)
-        self.__movieList = self.__currentCategory.GetMovieList()
+        self.__movieList = self.__currentCategory.GetMovieList(True)
         if self.__movieList is not None:
             self.__movieList.sort(key = methodcaller("GetName"))
 

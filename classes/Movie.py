@@ -366,7 +366,7 @@ class Movie(object):
         """
 
         if self.__dirty:
-            movie.SetModificationDate(datetime.now())
+            self.SetModificationDate(datetime.now())
             return self.__category.GetHdd().SaveMovieInfo(self)
         else:
             return True

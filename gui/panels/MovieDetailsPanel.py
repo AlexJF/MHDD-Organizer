@@ -88,7 +88,7 @@ class MovieDetailsPanel(wx.Panel):
         self.szrButtons.Add(self.btnSave, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 3)
 
         self.szrGrid.Add(self.lblName, (0, 0), (1, 3), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3)
-        self.szrGrid.Add(self.imgCover, (0, 3), (6, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 20)
+        self.szrGrid.Add(self.imgCover, (0, 3), (6, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 5)
         self.szrGrid.Add(self.lblTitle, (1, 0), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3) 
         self.szrGrid.Add(self.txtTitle, (1, 1), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL | wx.EXPAND, 3) 
         self.szrGrid.Add(self.lblTMDB, (2, 0), (1, 1), wx.ALL | wx.ALIGN_CENTER_VERTICAL, 3) 
