@@ -25,6 +25,7 @@ Copyright (C) 2010 Revolt
 """
 
 import wx, os, sys, logging
+from appinfo import *
 from gui.frames.MainFrame import *
 
 class MainApp(wx.App):
@@ -34,6 +35,8 @@ class MainApp(wx.App):
 
     def OnInit(self):
         """ What to do on application load """
+
+        global appInfo
 
         self.__logger.setLevel(logging.DEBUG)
         h1 = logging.StreamHandler()
@@ -45,8 +48,8 @@ class MainApp(wx.App):
         if "unicode" not in wx.PlatformInfo:
             self.__logger.warning("wxPython isn't built as unicode")
 
-        self.SetAppName("MHDD Organizer")
-        self.SetClassName("MHDDOrganizer")
+        self.SetAppName(appInfo['name'])
+        self.SetClassName(appInfo['class'])
 
         #wx.Image.AddHandler(wx.PNGHandler())
         #wx.Image.AddHandler(wx.JPEGHandler())
