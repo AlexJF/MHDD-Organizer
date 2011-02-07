@@ -234,7 +234,6 @@ class MainFrame(wx.Frame):
         if self.__movieList is not None:
             self.__movieList.sort(key = methodcaller("GetName"))
 
-        print self.__movieList
         self.PopulateMovieList()
         if self.lstMovie.GetItemCount() > 0:
             self.lstMovie.Select(0)
