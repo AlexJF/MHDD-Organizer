@@ -36,6 +36,7 @@ class HardDriveList(object):
         """ Constructor """
 
         self.__container = []
+        self.__logger = logging.getLogger("mhdd.hddlist")
 
     def __len__(self):
         """ Returns the number of harddrives in the list """
@@ -58,6 +59,8 @@ class HardDriveList(object):
 
     def Add(self, hardDrive):
         """ Adds a new harddrive to the list """
+
+        self.__logger.debug("Adding new harddrive (%s) to list", hardDrive.GetLabel())
 
         if not isinstance(hardDrive, HardDrive):
             raise TypeError
@@ -87,6 +90,8 @@ class HardDriveList(object):
             @ newHardDrive - HardDrive object with modified data
         """
 
+        self.__logger.debug("Editint existing harddrive (%s)", newHardDrive.GetLabel())
+
         if not newHardDrive.GetLabel() or not newHardDrive.GetPath():
             return
 
@@ -109,9 +114,10 @@ class HardDriveList(object):
     def Remove(self, index):
         """ Removes a harddrive from the list """
 
-        if self.__configSync:
-            hdd = self.__container[index]
+        hdd = self.__container[index]
+        self.__logger.debug("Remove harddrive from list (%s)", hdd.GetLabel())
 
+        if self.__configSync:
             config = wx.Config.Get()
             config.SetPath("/drives")
 
@@ -134,6 +140,8 @@ class HardDriveList(object):
         configuration file of the application.
         """
 
+        self.__logger.debug("Saving Harddrive List to config file")
+
         self.__configSync = configSync
 
         config = wx.Config.Get()
@@ -153,6 +161,8 @@ class HardDriveList(object):
         on the list after this command will be reflected on the 
         configuration file of the application.
         """
+
+        self.__logger.debug("Loading Harddrive list from config file")
 
         self.__container = []
         self.__configSync = configSync

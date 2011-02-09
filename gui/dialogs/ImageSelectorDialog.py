@@ -32,7 +32,7 @@ from gui.controls.ImageViewer import *
 class ImageSelectorDialog(wx.Dialog):
     """ The Image Selector Dialog class """
 
-    def __init__(self, parent, image):
+    def __init__(self, parent, image, defImage = wx.NullImage):
         """
         Constructor 
         ---
@@ -43,6 +43,7 @@ class ImageSelectorDialog(wx.Dialog):
         # -- Private Variables Initialization --
         self.__image = image
         self.__imagePath = ""
+        self.__defImage = defImage
 
         # -- Panel Initialization --
         wx.Dialog.__init__(self, parent, wx.ID_ANY, "Image Selector", style = wx.RESIZE_BORDER)
@@ -134,4 +135,4 @@ class ImageSelectorDialog(wx.Dialog):
         Handle right click on the image viewer.
         """
 
-        self.__image = None
+        self.SetImage(self.__defImage)

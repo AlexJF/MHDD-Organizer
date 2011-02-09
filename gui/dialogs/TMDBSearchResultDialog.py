@@ -45,7 +45,7 @@ class TMDBSearchResultDialog(wx.Dialog):
         """
 
         # -- Private Variables Initialization --
-        self.__logger = logging.getLogger("main")
+        self.__logger = logging.getLogger("mhdd.dialog.tmdbsearchresult")
         self.__resultList = resultList
         self.__selectedIndex = selectedIndex
 
@@ -147,6 +147,8 @@ class TMDBSearchResultDialog(wx.Dialog):
         self.__resultList = []
         try:
             self.__resultList = mdb.search(searchStr)
+            self.__logger.debug("Got %d results from TMDB search for '%s'",
+                                len(self.__resultList), searchStr)
         except tmdb.TmdXmlError, e:
             self.__logger.exception("Failed to perform TMDB search.")
         self.PopulateList()

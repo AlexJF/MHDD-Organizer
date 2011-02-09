@@ -43,7 +43,7 @@ class DBFileSyncProvider(Provider):
         """
 
         Provider.__init__(self, hdd)
-        self.__logger = logging.getLogger("main")
+        self.__logger = logging.getLogger("mhdd.providers.dbfile")
         self.__dbProvider = DatabaseProvider(hdd)
         self.__fileProvider = FileProvider(hdd)
         
@@ -59,6 +59,7 @@ class DBFileSyncProvider(Provider):
                  hdd associated with this provider.
         """
 
+        self.__logger.debug("Getting category list from HDD (%s)", self.GetHdd().GetLabel())
         return self.__fileProvider.GetCategoryList()
 
     def LoadCategoryList(self):
@@ -85,6 +86,8 @@ class DBFileSyncProvider(Provider):
         Return: (Boolean) True on success, false otherwise
         """
 
+        self.__logger.debug("Saving category list to HDD (%s)", self.GetHdd().GetLabel())
+
         self.__fileProvider.SaveCategoryList()
         self.__dbProvider.SaveCategoryList()
 
@@ -100,6 +103,8 @@ class DBFileSyncProvider(Provider):
         ---
         Return: (List of Movies) The movies contained in the category.
         """
+
+        self.__logger.debug("Geting category movie list from category (%s)", cat.GetName())
 
         hddMovieList = self.__fileProvider.GetCategoryMovieList(cat)
         dbMovieList = self.__dbProvider.GetCategoryMovieList(cat)
@@ -158,6 +163,8 @@ class DBFileSyncProvider(Provider):
         Return: (Dict) A dict object containing movie info.
         """
 
+        self.__logger.debug("Getting movie info (%s)", movie.GetName())
+
         hddInfo = self.__fileProvider.GetMovieInfoDict(movie)
         dbInfo = self.__dbProvider.GetMovieInfoDict(movie)
 
@@ -178,6 +185,8 @@ class DBFileSyncProvider(Provider):
         Params:
             @ movie (Movie) - The movie to save.
         """
+
+        self.__logger.debug("Saving movie info (%s)", movie.GetName())
 
         self.__fileProvider.SaveMovieInfo(movie)
         self.__dbProvider.SaveMovieInfo(movie)

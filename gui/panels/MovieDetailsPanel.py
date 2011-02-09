@@ -49,8 +49,7 @@ class MovieDetailsPanel(wx.Panel):
         self.lblName = wx.StaticText(self, label="Movie Name")
         self.lblName.SetFont(wx.Font(16, 70, 90, 92, False, wx.EmptyString))
 
-        self.imgCover = ImageViewer(self, wx.ID_ANY, self.__defImage)
-        self.imgCover.SetMinSize((100, 140))
+        self.imgCover = ImageViewer(self, wx.ID_ANY, self.__defImage, size = (140, 160))
         
         self.lblTitle = wx.StaticText(self, label="Title:")
         self.txtTitle = wx.TextCtrl(self, size=(250, -1))
@@ -177,13 +176,13 @@ class MovieDetailsPanel(wx.Panel):
 
     def OnImageClick(self, event):
         """
-        Handles a click on the image.
+        Handles a left click on the image.
         """
 
         if self.__currentMovie is None:
             return
 
-        dlgImageSelect = ImageSelectorDialog(self, self.imgCover.GetImage())
+        dlgImageSelect = ImageSelectorDialog(self, self.imgCover.GetImage(), self.__defImage)
 
         if dlgImageSelect.ShowModal() == wx.ID_OK:
             selectedImage = dlgImageSelect.GetImage()

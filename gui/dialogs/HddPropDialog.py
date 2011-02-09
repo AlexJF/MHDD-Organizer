@@ -24,7 +24,7 @@ Copyright (C) 2010 Revolt
 """
 
 
-import wx, os, ConfigParser
+import wx, os
 from CatPropDialog import *
 from classes.Category import *
 from classes.HardDrive import *

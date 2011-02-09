@@ -25,7 +25,7 @@ Copyright (C) 2010 Revolt
 """
 
 
-import wx, os
+import wx, sys, os, logging, subprocess
 from appinfo import *
 from operator import methodcaller
 from gui.panels.MovieDetailsPanel import *
@@ -42,6 +42,7 @@ class MainFrame(wx.Frame):
     ID_TMDB = 100
     ID_TMDB_SEARCHNEW = 101
     ID_TMDB_REFRESH = 102
+    ID_LOGS = 103
 
     def __init__(self, parent, title):
         """ Constructor """
@@ -55,6 +56,7 @@ class MainFrame(wx.Frame):
         self.__currentCategory = None
         self.__movieList = None
         self.__selectedMovie = None
+        self.__logger = logging.getLogger("mhdd.gui.mainframe")
 
         # -- Control Initialization --
         self.mnbMain = wx.MenuBar()
@@ -75,7 +77,8 @@ class MainFrame(wx.Frame):
 
         self.mnuHelp = wx.Menu()
         #self.mnuHelp.Append(wx.ID_HELP, "Help")
-        #self.mnuHelp.AppendSeparator()
+        self.mnuHelp.Append(self.ID_LOGS, "Open logs folder")
+        self.mnuHelp.AppendSeparator()
         self.mnuHelp.Append(wx.ID_ABOUT, "About")
 
         self.mnbMain.Append(self.mnuMain, "&Main")
@@ -139,6 +142,9 @@ class MainFrame(wx.Frame):
 
         self.Layout()
 
+        self.tlbMain.EnableTool(wx.ID_REFRESH, False)
+        self.pnlMovieDetails.Disable()
+
         # -- Event Binding -- 
         self.Bind(wx.EVT_MENU, self.OnMenuSelectExit, id = wx.ID_EXIT)
         self.Bind(wx.EVT_MENU, self.OnMenuSelectHardDrive, id = wx.ID_OPEN)
@@ -146,6 +152,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.OnMenuSelectTMDBRefresh, id = self.ID_TMDB_REFRESH)
         self.Bind(wx.EVT_MENU, self.OnMovieListRefresh, id = wx.ID_REFRESH)
         self.Bind(wx.EVT_MENU, self.OnAbout, id = wx.ID_ABOUT)
+        self.Bind(wx.EVT_MENU, self.OnLogsOpen, id=self.ID_LOGS)
 
         self.txtSearch.Bind(wx.EVT_TEXT_ENTER, self.OnMovieSearch)
         self.cmbCat.Bind(wx.EVT_COMBOBOX, self.OnCatChanged)
@@ -153,7 +160,6 @@ class MainFrame(wx.Frame):
         self.lstMovie.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnMovieListItemSelect)
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
-
 
     def SelectHDD(self):
         """
@@ -177,6 +183,10 @@ class MainFrame(wx.Frame):
         if not isinstance(hdd, HardDrive):
             return
 
+        self.__logger.debug("Changing harddrive to %s", hdd.GetLabel())
+
+        self.lstMovie.DeleteAllItems()
+
         self.__currentHdd = hdd
         self.__categoryList = self.__currentHdd.GetCategoryList()
 
@@ -198,6 +208,11 @@ class MainFrame(wx.Frame):
             @ cat (Category) - The new active category
         """
 
+        self.__logger.debug("Changing category to %s", cat.GetName())
+
+        self.tlbMain.EnableTool(wx.ID_REFRESH, True)
+        self.pnlMovieDetails.Enable()
+
         self.__currentCategory = cat
         self.RefreshMovieList()
 
@@ -214,6 +229,8 @@ class MainFrame(wx.Frame):
         if self.__movieList is None:
             return
 
+        self.__logger.debug("Populating movie list with %d items", len(self.__movieList))
+
         i = 0
 
         for movie in self.__movieList:
@@ -227,6 +244,8 @@ class MainFrame(wx.Frame):
         """
         (Re)reads the movie list from the HDD (or cache) and updates the listview.
         """
+
+        self.__logger.debug("Refreshing movie list")
 
         dsbWindow = wx.WindowDisabler()
         infBusy = wx.BusyInfo("Please wait...", self)
@@ -265,6 +284,11 @@ class MainFrame(wx.Frame):
             @ movieList (List of Movies) - The list of movies whose info we wish to refresh
                                            from TMDB.
         """
+
+        if movieList is None:
+            return
+
+        self.__logger.debug("Refreshing TMDB info on a list of %d movies", len(movieList))
 
         dlgProgress = wx.ProgressDialog("Getting TMDB info...", "Preparing TMDB Loading.............................", 
                                         len(movieList), self, wx.PD_AUTO_HIDE | 
@@ -371,6 +395,23 @@ class MainFrame(wx.Frame):
         """
 
         self.RefreshMovieList()
+
+    def OnLogsOpen(self, event):
+        """
+        This method is called when the user clicks the open logs folder button.
+        """
+
+        stdPaths = wx.StandardPaths.Get()
+        appDataFolder = stdPaths.GetUserLocalDataDir()
+        logFolder = os.path.join(appDataFolder, "logs")
+
+        if sys.platform == "win32":
+            os.startfile(logFolder)
+        else:
+            try:
+                subprocess.Popen(['xdg-open', logFolder])
+            except OSError:
+                pass
 
     def OnAbout(self, event):
         """

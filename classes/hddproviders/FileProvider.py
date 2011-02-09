@@ -41,8 +41,7 @@ class FileProvider(Provider):
         """
 
         super(FileProvider, self).__init__(hdd)
-        self.__logger = logging.getLogger("main")
-
+        self.__logger = logging.getLogger("mhdd.providers.file")
 
     # -- Methods --
     def GetCategoryList(self):
@@ -52,12 +51,14 @@ class FileProvider(Provider):
         Return: (List of Categories) Categories in the hdd.
         """
 
+        self.__logger.debug("Reading category list from HDD (%s)", self.GetHdd().GetLabel())
+
         harddrive = self.GetHdd()
         hddConfigFolderPath = os.path.join(harddrive.GetPath(), ".mhddorganizer")
         hddCategoryConfigPath = os.path.join(hddConfigFolderPath, "categories.ini")
 
         if not os.path.exists(hddCategoryConfigPath):
-            self.__logger.debug("FI - Didn't find categories in the HDD (%s)", self.GetHdd().GetUuid())
+            self.__logger.debug("Didn't find categories in the HDD (%s)", self.GetHdd().GetLabel())
             return []
 
         categoryList = []
@@ -72,12 +73,12 @@ class FileProvider(Provider):
                 cat = Category(category, hddCategoryConfig.get(category, "Path"), harddrive)
                 categoryList.append(cat)
 
-            self.__logger.debug("FI - Loaded %d categories from the HDD (%s)", len(categoryList), self.GetHdd().GetUuid())
+            self.__logger.debug("Loaded %d categories from the HDD (%s)", len(categoryList), self.GetHdd().GetUuid())
         except IOError, e:
-            self.__logger.exception("FI - Error reading HDD category config file")
+            self.__logger.exception("Error reading HDD category config file")
             return None
         except ConfigParser.NoOptionError, e:
-            self.__logger.exception("FI - Didn't find section option")
+            self.__logger.exception("Didn't find section option")
             return None
         finally:
             if hddCategoryConfigFile is not None:
@@ -93,6 +94,8 @@ class FileProvider(Provider):
         Return: (Boolean) True on success, false otherwise
         """
 
+        self.__logger.debug("Saving category list to HDD (%s)", self.GetHdd().GetLabel())
+
         harddrive = self.GetHdd()
         harddrivePath = harddrive.GetPath()
 
@@ -100,12 +103,13 @@ class FileProvider(Provider):
         hddCategoryConfigPath = os.path.join(hddConfigFolderPath, "categories.ini")
 
         if not os.path.isdir(hddConfigFolderPath):
-            self.__logger.debug("FI - Creating config folder in HDD (%s)", 
-                                self.GetHdd().GetUuid())
+            self.__logger.debug("Creating config folder in HDD (%s)", 
+                                self.GetHdd().GetLabel())
             try:
                 os.mkdir(hddConfigFolderPath)
             except OSError, e:
-                self.__logger.exception("FI - Error while creating config folder")
+                self.__logger.exception("Error while creating config folder in HDD (%s)",
+                                        self.GetHdd().GetLabel())
                 return False
 
         configFile = None
@@ -113,8 +117,8 @@ class FileProvider(Provider):
         try:
             configFile = open(hddCategoryConfigPath, "w")
         except IOError, e:
-            self.__logger.exception("FI - Error while opening categories.ini in HDD (%s)", 
-                                    self.GetHdd().GetUuid())
+            self.__logger.exception("Error while opening categories.ini in HDD (%s)", 
+                                    self.GetHdd().GetLabel())
             return False
 
         hddCategoryConfig = ConfigParser.ConfigParser()
@@ -132,8 +136,8 @@ class FileProvider(Provider):
 
         configFile.close()
 
-        self.__logger.debug("FI - Successfully wrote %d categories to the HDD (%s)", 
-                            len(catList), self.GetHdd().GetUuid())
+        self.__logger.debug("Successfully wrote %d categories to the HDD (%s)", 
+                            len(catList), self.GetHdd().GetLabel())
 
         return True
 
@@ -148,10 +152,10 @@ class FileProvider(Provider):
         Return: (List of Movies) The movies contained in the category.
         """
 
-        self.__logger.debug("FI - Loading movie list from category '%s'", cat.GetName())
+        self.__logger.debug("Loading movie list from category '%s'", cat.GetName())
 
         if cat.GetHdd() != self.GetHdd():
-            self.__logger.error("FI - Category doesn't belong to the HDD associated with this provider")
+            self.__logger.error("Category doesn't belong to the HDD associated with this provider")
             return None
 
         movieList = []
@@ -161,13 +165,13 @@ class FileProvider(Provider):
         items = os.listdir(catFullPath)
 
         for root, dirs, files in os.walk(catFullPath):
-            self.__logger.debug("FI - Reading directory: %s", root)
+            self.__logger.debug("Reading directory: %s", root)
 
             for f in files:
                 name, extension = os.path.splitext(f)
                 extension = extension[1:].lower()
                 if extension in movieExtensions:
-                    self.__logger.debug("FI - Found a movie in the directory: %s", f)
+                    self.__logger.debug("Found a movie in the directory: %s", f)
                     movieDirRelPath = os.path.relpath(root, catFullPath)
                     movieName = movieDirRelPath.replace("/", " ")
                     movieName = movieName.replace("\\", " ")
@@ -176,7 +180,7 @@ class FileProvider(Provider):
                     movieList.append(movie)
                     break
 
-        self.__logger.debug("FI - Loaded %d movies from category '%s'", len(movieList), cat.GetName())
+        self.__logger.debug("Loaded %d movies from category '%s'", len(movieList), cat.GetName())
 
         return movieList
 
@@ -190,7 +194,7 @@ class FileProvider(Provider):
         Return: (Dict) A dict containing movie info.
         """
 
-        self.__logger.debug("FI - Loading movie '%s' info", movie.GetName()) 
+        self.__logger.debug("Loading movie '%s' info", movie.GetName()) 
 
         moviePath = movie.GetFullPath()
 
@@ -198,7 +202,7 @@ class FileProvider(Provider):
         infoFilePath = os.path.join(infoFolderPath, "info.ini")
 
         if not os.path.exists(infoFilePath):
-            self.__logger.debug("FI - Movie doesn't have info in the HDD")
+            self.__logger.debug("Movie doesn't have info in the HDD")
             return dict()
 
         infoFile = None
@@ -217,10 +221,10 @@ class FileProvider(Provider):
                 infoDict[name] = value
 
         except IOError, e:
-            self.__logger.exception("FI - Error reading info file")
+            self.__logger.exception("Error reading info file")
             return None
         except ConfigParser.NoSectionError, e:
-            self.__logger.exception("FI - Didn't find info section in info file")
+            self.__logger.exception("Didn't find info section in info file")
             return None
         finally:
             if infoFile is not None:
@@ -236,7 +240,7 @@ class FileProvider(Provider):
                 imageData = imageFile.read()
                 infoDict['image'] = imageData
             except IOError, e:
-                self.__logger.exception("FI - Error reading cover image")
+                self.__logger.exception("Error reading cover image")
 
         return infoDict
 
@@ -248,7 +252,7 @@ class FileProvider(Provider):
             @ movie (Movie) - The movie to save.
         """
 
-        self.__logger.debug("FI - Saving movie '%s' info", movie.GetName()) 
+        self.__logger.debug("Saving movie '%s' info", movie.GetName()) 
 
         moviePath = movie.GetFullPath()
 
@@ -259,7 +263,7 @@ class FileProvider(Provider):
             try:
                 os.mkdir(infoFolderPath)
             except OSError, e:
-                self.__logger.exception("FI - Error creating movie data folder")
+                self.__logger.exception("Error creating movie data folder")
                 return False
 
         infoFile = None
@@ -267,7 +271,7 @@ class FileProvider(Provider):
         try:
             infoFile = open(infoFilePath, "w")
         except IOError, e:
-            self.__logger.exception("FI - Error opening info file for writing")
+            self.__logger.exception("Error opening info file for writing")
             return False
 
         movieInfoParser = ConfigParser.ConfigParser()
@@ -306,7 +310,7 @@ class FileProvider(Provider):
                 imageFile = open(imageFilePath, "wb")
                 imageFile.write(imageData)
             except IOError, e:
-                self.__logger.exception("FI - Error writing cover image")
+                self.__logger.exception("Error writing cover image")
                 return False
             finally:
                 if imageFile is not None:

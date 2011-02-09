@@ -24,26 +24,17 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import wx, os, sys, logging
+import wx, os, sys, logging, logging.handlers, traceback
 from appinfo import *
 from gui.frames.MainFrame import *
 
 class MainApp(wx.App):
     """ Our main application class """
 
-    __logger = logging.getLogger("main")
-
     def OnInit(self):
         """ What to do on application load """
 
         global appInfo
-
-        self.__logger.setLevel(logging.DEBUG)
-        h1 = logging.StreamHandler()
-        h1.setLevel(logging.DEBUG)
-        f = logging.Formatter("%(levelname)s %(asctime)s %(funcName)s %(message)s")
-        h1.setFormatter(f)
-        self.__logger.addHandler(h1)
 
         if "unicode" not in wx.PlatformInfo:
             self.__logger.warning("wxPython isn't built as unicode")
@@ -59,6 +50,30 @@ class MainApp(wx.App):
         if not os.path.isdir(appDataFolder):
             os.mkdir(appDataFolder)
 
+        LEVELS = {'debug': logging.DEBUG,
+                  'info': logging.INFO,
+                  'warning': logging.WARNING,
+                  'error': logging.ERROR,
+                  'critical': logging.CRITICAL}
+
+        if len(sys.argv) > 1:
+            level_name = sys.argv[1]
+            level = LEVELS.get(level_name, logging.ERROR)
+            logging.basicConfig(level=level)
+
+        logFolder = os.path.join(appDataFolder, "logs")
+
+        if not os.path.isdir(logFolder):
+            os.mkdir(logFolder)
+
+        logger = logging.getLogger("mhdd")
+        fileHandler = logging.handlers.RotatingFileHandler(os.path.join(logFolder,
+                                                  "mhddorganizer.log"),
+                                                  maxBytes = 20*1024,
+                                                  backupCount = 2)
+        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s (%(funcName)s)")
+        fileHandler.setFormatter(formatter)
+        logger.addHandler(fileHandler)
 
         self.config = wx.FileConfig(localFilename = os.path.join(appDataFolder, "config"),
                                     style = wx.CONFIG_USE_LOCAL_FILE)
@@ -69,10 +84,24 @@ class MainApp(wx.App):
         self.SetTopWindow(self.frame)
         return True;
 
+def exceptionHandler(type, value, tb):
+    try:
+        message = "Unhandled exception: " + ''.join(traceback.format_exception(type, value, tb))
+        print >> sys.stderr, message
+        logger = logging.getLogger("mhdd")
+        logger.error(message)
+        wx.MessageBox(message, "Unhandled Exception", wx.OK | wx.ICON_ERROR)
+    except Exception, e:
+        pass
+    sys.exit(1)
+
 scriptDir = os.path.dirname(sys.argv[0])
 
 if scriptDir:
     os.chdir(scriptDir)
 
+sys.excepthook = exceptionHandler
+
 app = MainApp(False)
+
 app.MainLoop()

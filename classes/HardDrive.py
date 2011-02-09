@@ -46,7 +46,7 @@ class HardDrive(object):
         if not hdduuid:
             hdduuid = str(uuid.uuid4())
 
-        self.__logger = logging.getLogger("main")
+        self.__logger = logging.getLogger("mhdd.hdd")
         self.__uuid = hdduuid 
         self.__label = label
         self.__path = ""

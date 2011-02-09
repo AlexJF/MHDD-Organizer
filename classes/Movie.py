@@ -54,6 +54,7 @@ class Movie(object):
         self.__directors = []
         self.__actors = []
         self.__imageData = None
+        self.__logger = logging.getLogger("mhdd.movie")
 
     # -- Properties (Get) --
     def GetCategory(self):
@@ -416,7 +417,10 @@ class Movie(object):
         Loads the movie info from TMDB.
         """
 
+        self.__logger.debug("Getting movie (%s) info from TMDB", self.GetName())
+
         if (self.__tmdbID == ""):
+            self.__logger.debug("Movie doesn't have a TMDB id associated")
             return
 
         mdb = tmdb.MovieDb()
@@ -426,6 +430,7 @@ class Movie(object):
         try:
             movieInfo = mdb.getMovieInfo(self.__tmdbID)
         except tmdb.TmdNoResults, e:
+            self.__logger.debug("Couldn't get movie info from TMDB")
             return
 
         self.SetTitle(movieInfo['name'])
@@ -463,6 +468,7 @@ class Movie(object):
         except KeyError, e:
             pass
         except IOError, e:
+            self.__logger.exception("Error reading cover image")
             pass
         finally:
             if img is not None:

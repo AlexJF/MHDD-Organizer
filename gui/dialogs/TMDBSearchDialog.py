@@ -42,7 +42,7 @@ class TMDBSearchDialog(wx.Dialog):
         """
 
         # -- Private Variables Initialization --
-        self.__logger = logging.getLogger("main")
+        self.__logger = logging.getLogger("mhdd.dialog.tmdbsearch")
         self.__movieList = movieList
         self.__resultCache = []
 
