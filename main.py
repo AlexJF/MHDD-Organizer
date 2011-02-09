@@ -69,7 +69,7 @@ class MainApp(wx.App):
         logger = logging.getLogger("mhdd")
         fileHandler = logging.handlers.RotatingFileHandler(os.path.join(logFolder,
                                                   "mhddorganizer.log"),
-                                                  maxBytes = 20*1024,
+                                                  maxBytes = 512*1024,
                                                   backupCount = 2)
         formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(name)s - %(message)s (%(funcName)s)")
         fileHandler.setFormatter(formatter)

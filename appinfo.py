@@ -24,7 +24,7 @@ Copyright (C) 2010 Revolt
 appInfo = dict()
 appInfo['name'] = "MHDD Organizer"
 appInfo['class'] = "mhddorganizer"
-appInfo['version'] = "0.1"
+appInfo['version'] = "0.1.1"
 appInfo['description'] = \
 """
 This program is an organizer for hard drives containing one or

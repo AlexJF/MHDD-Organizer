@@ -1,2 +1,7 @@
+-- Version 0.1.1 (09/02/2010)
+    Improved logging
+    Removed border from image viewer in Windows
+    Disabled some mainframe controls on frame load
+    Implemented image reset in the image chooser dialog
 -- Version 0.1 (07/02/2010)
     Initial version
