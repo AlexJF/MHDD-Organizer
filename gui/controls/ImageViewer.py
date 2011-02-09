@@ -31,7 +31,7 @@ class ImageViewer(wx.Control):
     """ The ImageViewer class """
 
     def __init__(self, parent, id = -1, image = wx.NullImage, pos = wx.DefaultPosition,
-                 size = wx.DefaultSize, style = 0, label = ""):
+                 size = wx.DefaultSize, style = wx.BORDER_NONE, label = ""):
         """ 
         Constructor of an ImageViewer control.
         ---
