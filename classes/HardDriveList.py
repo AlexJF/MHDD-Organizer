@@ -151,6 +151,8 @@ class HardDriveList(object):
         for hardDrive in self.__container:
             config.Write(hardDrive.GetUuid() + "/Label", hardDrive.GetLabel())
             config.Write(hardDrive.GetUuid() + "/Path", hardDrive.GetPath())
+
+        config.Flush()
         
 
     def LoadFromConfig(self, configSync = True):

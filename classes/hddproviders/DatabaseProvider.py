@@ -86,7 +86,7 @@ class DatabaseProvider(Provider):
         dbCursor.execute(sql)
 
         sql = "CREATE TABLE IF NOT EXISTS movies " + \
-              "(id INTEGER PRIMARY KEY AUTOINCREMENT, cat INT, name TEXT, path TEXT UNIQUE," + \
+              "(id INTEGER PRIMARY KEY AUTOINCREMENT, cat INT, name TEXT, path TEXT," + \
               "image BLOB, title TEXT, tmdb TEXT, year TEXT, rating INT, " + \
               "genres TEXT, overview TEXT, directors TEXT, actors TEXT, moddate INT);"
 

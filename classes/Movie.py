@@ -436,7 +436,8 @@ class Movie(object):
         self.SetTitle(movieInfo['name'])
         self.SetRating(movieInfo['rating'])
         self.SetOverview(movieInfo['overview'])
-        self.SetYear(movieInfo['released'][0:4])
+        if movieInfo['released'] is not None:
+            self.SetYear(movieInfo['released'][0:4])
         genres = []
         try:
             for genre in movieInfo['categories']['genre'].keys():
