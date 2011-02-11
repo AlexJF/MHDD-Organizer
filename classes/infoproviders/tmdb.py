@@ -11,7 +11,7 @@ __author__ = "doganaydin"
 __version__ = "0.2"
 
 config = {}
-config['apikey'] = "3e7807c4a01f18298f64662b257d7059"
+config['apikey'] = "d6119493a1285b548e3fb748a0dd1a1a"
 config['urls'] = {}
 config['urls']['movie.search'] = "http://api.themoviedb.org/2.1/Movie.search/en/xml/%(apikey)s/%%s" % (config)
 config['urls']['movie.getInfo'] = "http://api.themoviedb.org/2.1/Movie.getInfo/en/xml/%(apikey)s/%%s" % (config)

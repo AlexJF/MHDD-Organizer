@@ -9,7 +9,6 @@ ABOUT
     can be made without the HDD present and, when connected, those
     changes should sync with the information in the hard drive disk.
 
-
 DEPENDENCIES
     
     MHDD Organizer is programmed in Python 2.7 and has the following
@@ -35,3 +34,6 @@ BUILDING DIST BIN
     $ python setup.py build
     
     This will create a build/exe.OS-PYTHONVERSION
+
+OTHER NOTES
+    This product uses the TMDb API but is not endorsed or certified by TMDb.

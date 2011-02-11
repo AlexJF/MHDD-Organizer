@@ -43,6 +43,7 @@ class HddPropDialog(wx.Dialog):
         # -- Private Variables Initialization --
         if hardDrive is None:
             self.__hardDrive = HardDrive()
+            self.__hardDrive.SetPath(os.getcwdu())
         else:
             self.__hardDrive = hardDrive
 
@@ -94,7 +95,7 @@ class HddPropDialog(wx.Dialog):
 
         # If we are adding a new harddrive, disable the OK button until
         # the data is valid enough
-        if not hardDrive:
+        if self.__hardDrive.GetLabel() == "" or len(self.__hardDrive.GetCategoryList()) == 0:
             self.btnOk.Disable()
 
         self.szrBaseVert.Add(self.szrLabel, 0, wx.EXPAND | wx.ALL, 5)
@@ -199,25 +200,22 @@ class HddPropDialog(wx.Dialog):
             index += 1
 
     def OnListItemSelected(self, event):
-        """ Enables the ok, edit and remove buttons """
+        """ Enables the edit and remove buttons """
 
         self.btnCatEdit.Enable()
         self.btnCatRem.Enable()
-        self.btnOk.Enable()
 
     def OnListItemDeSelected(self, event):
-        """ Disables the ok, edit and remove buttons """
+        """ Disables the edit and remove buttons """
 
         self.btnCatEdit.Disable()
         self.btnCatRem.Disable()
-        self.btnOk.Disable()
 
     def OnListItemRemoved(self, event):
         """ Disables the ok, edit and remove buttons """
 
         self.btnCatEdit.Disable()
         self.btnCatRem.Disable()
-        self.btnOk.Disable()
 
     def OnCatAdd(self, event):
         """
@@ -230,6 +228,7 @@ class HddPropDialog(wx.Dialog):
             newCategory = dlgCatProp.GetCategory()
             self.__hardDrive.GetCategoryList().append(newCategory)
             self.AddCategoryListView(newCategory)
+            self.btnOk.Enable()
 
     def OnCatRem(self, event):
         """
@@ -243,6 +242,8 @@ class HddPropDialog(wx.Dialog):
         
         self.RemCategoryListView(selectedIndex)
         self.__hardDrive.GetCategoryList().pop(selectedIndex)
+        if len(self.__hardDrive.GetCategoryList()) == 0:
+            self.btnOk.Disable()
 
     def OnCatEdit(self, event):
         """

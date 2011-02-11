@@ -173,6 +173,8 @@ class HddSelectorDialog(wx.Dialog):
 
         self.btnEdit.Enable()
         self.btnRem.Enable()
+
+        selectedHdd = self.GetSelectedHdd()[1]
         self.btnOk.Enable()
 
     def OnListItemDeSelected(self, event):

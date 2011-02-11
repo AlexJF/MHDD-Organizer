@@ -47,6 +47,7 @@ class HardDriveList(object):
         """ Returns the harddrive with the specified key """
 
         if isinstance(key, int):
+            self.__logger.debug("Accessing HardDrive at index %d", key)
             return self.__container[key]
         else:
             raise TypeError
@@ -60,7 +61,8 @@ class HardDriveList(object):
     def Add(self, hardDrive):
         """ Adds a new harddrive to the list """
 
-        self.__logger.debug("Adding new harddrive (%s) to list", hardDrive.GetLabel())
+        self.__logger.debug("Adding new harddrive (%s - %s) to list", 
+                            hardDrive.GetLabel(), hardDrive.GetPath())
 
         if not isinstance(hardDrive, HardDrive):
             raise TypeError

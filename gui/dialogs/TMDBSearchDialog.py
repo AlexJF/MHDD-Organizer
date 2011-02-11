@@ -63,12 +63,15 @@ class TMDBSearchDialog(wx.Dialog):
 
         self.szrListHoriz.Add(self.lstResults, 1, wx.EXPAND | wx.ALL, 5)
 
+        self.lblTMDBAttribution = wx.StaticText(self, wx.ID_ANY, "This product uses the TMDb API but is not endorsed or certified by TMDb.")
+
         self.szrDialogButtons = self.CreateButtonSizer(wx.OK | wx.CANCEL)
         self.btnOk = self.FindWindowById(wx.ID_OK)
         self.btnCancel = self.FindWindowById(wx.ID_CANCEL)
 
         self.szrBaseVert.Add(self.szrListHoriz, 1, wx.EXPAND | wx.ALL, 5)
-        self.szrBaseVert.Add(self.szrDialogButtons, 0, wx.EXPAND | wx.ALL, 5)
+        self.szrBaseVert.Add(self.lblTMDBAttribution, 0, wx.EXPAND | wx.ALL, 5)
+        self.szrBaseVert.Add(self.szrDialogButtons, 0, wx.ALIGN_CENTER | wx.ALL, 5)
 
         self.SetSizerAndFit(self.szrBaseVert)
 
