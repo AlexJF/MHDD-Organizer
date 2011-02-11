@@ -217,7 +217,7 @@ class Movie(object):
 
         if not isinstance(rating, int):
             try:
-                rating = int(rating)
+                rating = int(float(rating))
             except ValueError, e:
                 rating = 0
 
