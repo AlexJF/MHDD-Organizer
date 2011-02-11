@@ -159,7 +159,8 @@ class FileProvider(Provider):
             return None
 
         movieList = []
-        movieExtensions = ["avi", "mpeg", "mpg", "mkv"]
+        movieExtensions = ["avi", "mpeg", "mpg", "mkv", "m4v", "mp4",
+                           "wmv", "mov", "qt", "rm", "3gp", "ogm"]
 
         catFullPath = cat.GetFullPath()
         items = os.listdir(catFullPath)
