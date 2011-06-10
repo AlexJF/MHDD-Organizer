@@ -23,7 +23,7 @@ Copyright (C) 2010 Revolt
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os, ConfigParser, logging, time, codecs, sys
+import os, ConfigParser, logging, time, codecs, sys, shutil
 from datetime import datetime
 from classes.Provider import *
 from classes.Category import *
@@ -318,3 +318,24 @@ class FileProvider(Provider):
                     imageFile.close()
 
         return True
+
+    def CleanAllInfo(self):
+        self.__logger.debug("Cleaning all mhdd organizer info")
+
+        hdd = self.GetHdd()
+        success = True
+
+        for root, dirs, files in os.walk(hdd.GetPath()):
+            self.__logger.debug("Reading directory: %s", root)
+
+            try:
+                infoIndex = dirs.index(".mhddorganizer")
+                dirs.pop(infoIndex)
+                shutil.rmtree(os.path.join(root, ".mhddorganizer"))
+            except ValueError, e:
+                success = False
+            except OSError, e:
+                success = False
+                self.__logger.exception("Error removing .mhddorganizer folder")
+
+        return success

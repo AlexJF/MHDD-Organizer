@@ -124,25 +124,40 @@ class MovieDetailsPanel(wx.Panel):
         """
 
         self.__currentMovie = movie
-        self.lblName.SetLabel(movie.GetName())
-        self.txtTitle.SetValue(movie.GetTitle())
-        self.txtTMDB.SetValue(movie.GetTMDBID())
-        self.txtRelYear.SetValue(movie.GetYear())
-        self.spnRating.SetValue(movie.GetRating())
-        separator = u", "
-        self.txtGenres.SetValue(separator.join(movie.GetGenres()))
-        self.txtOverview.SetValue(movie.GetOverview())
-        self.txtDirectors.SetValue(separator.join(movie.GetDirectors()))
-        self.txtActors.SetValue(separator.join(movie.GetActors()))
 
-        imageData = movie.GetImageData()
-
-        if imageData is not None:
-            imageStream = io.BytesIO(bytearray(imageData))
-            image = wx.ImageFromStream(imageStream)
-            self.imgCover.SetImage(image)
-        else:
+        if movie is None:
+            self.Disable()
+            self.lblName.SetLabel("Movie Name")
+            self.txtTitle.SetValue("")
+            self.txtTMDB.SetValue("")
+            self.txtRelYear.SetValue("")
+            self.spnRating.SetValue(0)
+            self.txtGenres.SetValue("")
+            self.txtOverview.SetValue("")
+            self.txtDirectors.SetValue("")
+            self.txtActors.SetValue("")
             self.imgCover.SetImage(self.__defImage)
+        else:
+            self.Enable()
+            self.lblName.SetLabel(movie.GetName())
+            self.txtTitle.SetValue(movie.GetTitle())
+            self.txtTMDB.SetValue(movie.GetTMDBID())
+            self.txtRelYear.SetValue(movie.GetYear())
+            self.spnRating.SetValue(movie.GetRating())
+            separator = u", "
+            self.txtGenres.SetValue(separator.join(movie.GetGenres()))
+            self.txtOverview.SetValue(movie.GetOverview())
+            self.txtDirectors.SetValue(separator.join(movie.GetDirectors()))
+            self.txtActors.SetValue(separator.join(movie.GetActors()))
+
+            imageData = movie.GetImageData()
+
+            if imageData is not None:
+                imageStream = io.BytesIO(bytearray(imageData))
+                image = wx.ImageFromStream(imageStream)
+                self.imgCover.SetImage(image)
+            else:
+                self.imgCover.SetImage(self.__defImage)
 
     def UpdateMovie(self):
         """

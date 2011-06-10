@@ -245,6 +245,8 @@ class DatabaseProvider(Provider):
         ---
         Params:
             @ movie (Movie) - The movie to save.
+        ---
+        Return: (Boolean) True on success, false otherwise
         """
 
         self.__logger.debug("Saving movie '%s' info", movie.GetName()) 
@@ -307,6 +309,8 @@ class DatabaseProvider(Provider):
         ---
         Params:
             @ movie (Movie) - The movie whose info we wish to remove.
+        ---
+        Return: (Boolean) True on success, false otherwise
         """
 
         self.__logger.debug("Deleting movie '%s' from database",
@@ -329,3 +333,20 @@ class DatabaseProvider(Provider):
 
         return True
 
+    def CleanAllInfo(self):
+        """
+        Deletes all info stored on the database.
+        ---
+        Return: (Boolean) True on success, false otherwise
+        """
+
+        self.__logger.debug("Deleting all mhdd organizer info from database")
+
+        dbCursor = self.__dbConn.cursor()
+        dbCursor.execute("DELETE * FROM categories")
+        dbCursor.execute("DELETE * FROM movies")
+
+        self.__dbConn.commit()
+        dbCursor.close()
+
+        return True

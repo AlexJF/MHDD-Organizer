@@ -192,3 +192,19 @@ class DBFileSyncProvider(Provider):
         self.__dbProvider.SaveMovieInfo(movie)
 
         return True
+
+    def CleanAllInfo(self):
+        """
+        Deletes all info stored on the database and harddrive.
+        ---
+        Return: (Boolean) True on success, false otherwise
+        """
+
+        self.__logger.debug("Cleaning all mhdd organizer info")
+
+        if not self.__fileProvider.CleanAllInfo():
+            return False
+        elif not self.__dbProvider.CleanAllInfo():
+            return False
+        else:
+            return True

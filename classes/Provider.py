@@ -149,3 +149,12 @@ class Provider(object):
         """
 
         raise NotImplementedError()
+
+    def CleanAllInfo(self):
+        """
+        Cleans all MHDD Organizer info from the media storage.
+        ---
+        Return: (Boolean) True on success, False on failure.
+        """
+
+        raise NotImplementedError()

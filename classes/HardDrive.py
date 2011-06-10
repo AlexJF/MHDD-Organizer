@@ -53,6 +53,7 @@ class HardDrive(object):
         self.__loaded = False
         self.__categoryList = []
         self.__provider = None
+        self.__invalid = False
 
         self.SetPath(path)
 
@@ -97,6 +98,7 @@ class HardDrive(object):
             self.__loaded = True
 
         return self.__categoryList
+
 
     # -- Set Properties --
     def SetLabel(self, label):
@@ -226,3 +228,15 @@ class HardDrive(object):
             return False
 
         return self.__provider.SaveMovieInfo(movie)
+
+    def CleanAllInfo(self):
+        """
+        Cleans all MHDD Organizer info from the HDD.
+        ---
+        Return: (Boolean) True on success, False on failure.
+        """
+
+        if self.__provider is None:
+            return False
+
+        return self.__provider.CleanAllInfo()

@@ -133,6 +133,22 @@ class HardDriveList(object):
         if os.path.isfile(dbPath):
             os.unlink(dbPath)
 
+    def Contains(self, uuid):
+        """
+        Checks if this list contains a Hdd with the specified uuid.
+        ---
+        Params:
+            @ uuid (String) - UUID of the harddrive
+        ---
+        Return: (Boolean) true if such a hdd exists, false otherwise.
+        """
+
+        for hdd in self.__container:
+            if hdd.GetUuid() == uuid:
+                return True
+
+        return False
+
     def SaveToConfig(self, configSync = True):
         """
         Overwrites all stored HDDs in the config with the ones specified

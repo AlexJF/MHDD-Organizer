@@ -150,6 +150,14 @@ class HddSelectorDialog(wx.Dialog):
         for hardDrive in self.__hddList:
             self.AddHardDriveListView(hardDrive)
 
+    def GetHddList(self):
+        """
+        Returns this selector's hdd list.
+        ---
+        Return: (HardDriveList) This selector's hdd list.
+        """
+
+        return self.__hddList
 
     def GetSelectedHdd(self):
         """ 
@@ -212,6 +220,12 @@ class HddSelectorDialog(wx.Dialog):
         if not selectedHdd:
             return
 
+        if wx.MessageBox("Do you want to remove all MHDD Organizer info from the HDD aswell?", 
+                         "MHDD Info Removal",
+                         wx.YES_NO,
+                         self) == wx.YES:
+            selectedHdd.CleanAllInfo()
+
         self.RemoveHardDriveListView(selectedIndex)
         self.__hddList.Remove(selectedIndex)
         self.RefreshHddList()
@@ -233,6 +247,7 @@ class HddSelectorDialog(wx.Dialog):
             self.UpdateHardDriveListView(selectedIndex)
 
         dlgHddProp.Destroy()
+
 
     def OnHddRefresh(self, event):
         """ Refreshes the Hdd list """

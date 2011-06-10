@@ -171,6 +171,9 @@ class MainFrame(wx.Frame):
 
         if hddSelectDialog.ShowModal() == wx.ID_OK:
             self.ChangeHDD(hddSelectDialog.GetSelectedHdd()[1])
+        # Else check if user removed the active hdd
+        elif not hddSelectDialog.GetHddList().Contains(self.__currentHdd.GetUuid()):
+            self.ChangeHDD(None)
 
     def ChangeHDD(self, hdd):
         """
@@ -180,12 +183,17 @@ class MainFrame(wx.Frame):
             @ hdd (HardDrive) - The new harddrive to be analysed
         """
 
-        if not isinstance(hdd, HardDrive):
+        self.lstMovie.DeleteAllItems()
+        self.__currentHdd = None
+        self.__categoryList = None
+        self.cmbCat.Clear()
+        self.cmbCat.SetValue("")
+        self.ChangeCat(None)
+
+        if hdd is None or not isinstance(hdd, HardDrive):
             return
 
         self.__logger.debug("Changing harddrive to %s", hdd.GetLabel())
-
-        self.lstMovie.DeleteAllItems()
 
         self.__currentHdd = hdd
         self.__categoryList = self.__currentHdd.GetCategoryList()
@@ -208,13 +216,30 @@ class MainFrame(wx.Frame):
             @ cat (Category) - The new active category
         """
 
+        self.__currentCategory = None
+        self.tlbMain.EnableTool(wx.ID_REFRESH, False)
+        self.ChangeMovie(None)
+
+        if cat is None or not isinstance(cat, Category):
+            return
+
         self.__logger.debug("Changing category to %s", cat.GetName())
 
         self.tlbMain.EnableTool(wx.ID_REFRESH, True)
-        self.pnlMovieDetails.Enable()
 
         self.__currentCategory = cat
         self.RefreshMovieList()
+
+    def ChangeMovie(self, movie):
+        """
+        Sets the new active Movie
+        ---
+        Params:
+            @ movie (Movie) - The new active movie
+        """
+
+        self.__selectedMovie = movie
+        self.pnlMovieDetails.SetMovie(self.__selectedMovie)
 
     def PopulateMovieList(self, condition = None):
         """
@@ -307,6 +332,7 @@ class MainFrame(wx.Frame):
             movie.SaveInfoToHdd()
 
             if movie == self.__selectedMovie:
+                # Refresh displayed info in case the refreshed movie is the active one
                 self.pnlMovieDetails.SetMovie(movie)
 
             i += 1
@@ -371,9 +397,7 @@ class MainFrame(wx.Frame):
 
         selectedIndex = event.GetIndex()
         i = self.lstMovie.GetItemData(selectedIndex)
-        self.__selectedMovie = self.__movieList[i]
-
-        self.pnlMovieDetails.SetMovie(self.__selectedMovie)
+        self.ChangeMovie(self.__movieList[i])
 
     def OnMovieSearch(self, event):
         """
