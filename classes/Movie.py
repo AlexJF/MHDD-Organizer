@@ -415,13 +415,15 @@ class Movie(object):
     def LoadInfoFromTMDB(self):
         """
         Loads the movie info from TMDB.
+        ---
+        Return: (Boolean) true on success, false otherwise
         """
 
         self.__logger.debug("Getting movie (%s) info from TMDB", self.GetName())
 
         if (self.__tmdbID == ""):
             self.__logger.debug("Movie doesn't have a TMDB id associated")
-            return
+            return False
 
         mdb = tmdb.MovieDb()
 
@@ -429,9 +431,9 @@ class Movie(object):
 
         try:
             movieInfo = mdb.getMovieInfo(self.__tmdbID)
-        except tmdb.TmdNoResults, e:
+        except tmdb.TmdBaseError, e:
             self.__logger.debug("Couldn't get movie info from TMDB")
-            return
+            return False
 
         self.SetTitle(movieInfo['name'])
         self.SetRating(movieInfo['rating'])
@@ -476,6 +478,7 @@ class Movie(object):
                 img.close()
 
         self.__dirty = True
+        return True
 
 setMethodsDict = dict()
 setMethodsDict['title'] = Movie.SetTitle

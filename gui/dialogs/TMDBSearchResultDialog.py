@@ -149,6 +149,9 @@ class TMDBSearchResultDialog(wx.Dialog):
             self.__resultList = mdb.search(searchStr)
             self.__logger.debug("Got %d results from TMDB search for '%s'",
                                 len(self.__resultList), searchStr)
-        except tmdb.TmdXmlError, e:
+        except tmdb.TmdBaseError, e:
+            wx.MessageBox("Error while performing your query to TMDB:" + str(e),
+                          "Error", wx.ID_OK | wx.ICON_ERROR, self)
             self.__logger.exception("Failed to perform TMDB search.")
+
         self.PopulateList()

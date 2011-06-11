@@ -110,8 +110,11 @@ class TMDBSearchDialog(wx.Dialog):
             try:
                 results = mdb.search(movie.GetName())
                 self.__resultCache.append(results)
-            except tmdb.TmdXmlError, e:
+            except tmdb.TmdBaseError, e:
                 self.__logger.exception("Failed to perform TMDB search.")
+                wx.MessageBox("Failed to perform TMDB search for " + movie.GetName(),
+                              "Error", wx.ID_OK | wx.ICON_ERROR, self)
+                break
 
             self.__logger.debug("Found %d results for '%s'", len(results), movie.GetName())
 
